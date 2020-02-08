@@ -1,34 +1,16 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route, useParams, useRouteMatch } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-const Test = () => {
-  const { recipeId = '' } = useParams();
-  const { url } = useRouteMatch();
-  return (<Switch>
-    <Route path={`${url}/:action`}>
-      <Pathing recipeId={recipeId}/>
-    </Route>
-    <Route>Root: {recipeId}</Route>
-  </Switch>);
-};
+import Recipe from './Recipe';
 
-const Pathing = ({recipeId}:{recipeId: string}) => {
-  const { action } = useParams();
-  return <>Action: {recipeId} => {action}</>;
-};
+const RecipeList = () => <>{'<RecipeList/>'}</>;
 
 const App = () => {
   return (<Router>
     <Switch>
-      <Route path="/new">
-        New
-      </Route>
-      <Route path='/:recipeId'>
-        <Test/>
-      </Route>
-      <Route path='/'>
-        Home
-      </Route>
+      <Route path='/new' component={Recipe}/>
+      <Route path='/:recipeID/:actionOrStarterID?/:starterAmount?' component={Recipe}/>
+      <Route path='/' component={RecipeList}/>
     </Switch>
   </Router>);
 }
