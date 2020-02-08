@@ -1,16 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Ingredient } from './state';
-
-const rebuildList = (ingredients: Ingredient[]) => ingredients.reduce(
-  (typeaheadList, ingredient) => typeaheadList + `${ingredient.name.toLowerCase()}¬${ingredient.id}¬${ingredient.starterRecipeID ? '1' : '0'}\n`,
-  ''
-);
+import { Ingredient, defaultIngredientList } from './state';
 
 const ingredientsReducer = createSlice({
   name: 'ingredients',
   initialState: {
-    list: [] as Ingredient[],
-    typeaheadList: ''
+    list: defaultIngredientList,
+    id: defaultIngredientList.length
   },
   reducers: {
     add: {
@@ -27,16 +22,18 @@ const ingredientsReducer = createSlice({
           return;
         }
 
+        state.id++;
         const newIngredient = {
-          ...action.payload
+          ...action.payload,
+          id: state.id
         };
         if (!newIngredient.starterRecipeID) {
           newIngredient.recipeCount = 1;
         }
         state.list.push(newIngredient);
-        state.typeaheadList = rebuildList(state.list);
+        state.list.sort();
       },
-      prepare(payload: Omit<Ingredient, 'recipeCount'>) {
+      prepare(payload: Omit<Ingredient, 'recipeCount' | 'id'>) {
         return { payload };
       }
     },
@@ -54,11 +51,10 @@ const ingredientsReducer = createSlice({
           ingredient.recipeCount--;
           if (!ingredient.recipeCount) {
             state.list.slice(ingredientIndex, 1);
-            state.typeaheadList = rebuildList(state.list);
           }
         }
       },
-      prepare(id: string) {
+      prepare(id: number) {
         return { payload: id };
       }
     }

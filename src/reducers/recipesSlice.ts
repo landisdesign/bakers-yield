@@ -4,7 +4,7 @@ import { Recipe } from './state';
 type Sorter = (a: Recipe, b: Recipe) => number;
 
 const sortByName: Sorter = (a, b) => a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
-const sortByID: Sorter = (a, b) => a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+const sortByID: Sorter = (a, b) => a.id - b.id;
 const reverse = (sorter: Sorter): Sorter => (a, b) => sorter(a, b) * -1;
 
 const recipeSorter = (byID: boolean, descending: boolean): Sorter => {
@@ -12,27 +12,27 @@ const recipeSorter = (byID: boolean, descending: boolean): Sorter => {
     return descending ? reverse(baseSorter) : baseSorter;
 }
 
-const recipeReducer = createSlice({
+const recipesReducer = createSlice({
     name: 'recipes',
     initialState: {
         list: [] as Recipe[],
-        map: {} as { [index: string]: Recipe },
+        map: {} as { [index: number]: Recipe },
         sortByID: false,
-        sortDescending: false
+        sortDescending: false,
+        id: 0
     },
     reducers: {
         add: {
             reducer(state, action) {
-                const {
-                    recipe, id
-                } = action.payload;
-                const newRecipe = {...recipe, id};
-                state.map[id] = newRecipe;
+                const recipe = action.payload;
+                state.id++;
+                const newRecipe = {...recipe, id: state.id};
+                state.map[state.id] = newRecipe;
                 state.list.push(newRecipe);
                 state.list.sort(recipeSorter(state.sortByID, state.sortDescending));
             },
-            prepare(recipe: Omit<Recipe, 'id'>, id: string) {
-                return { payload: {recipe, id} };
+            prepare(recipe: Omit<Recipe, 'id'>) {
+                return { payload: recipe };
             }
         },
         update: {
@@ -75,5 +75,5 @@ const recipeReducer = createSlice({
     }
 });
 
-export default recipeReducer.reducer;
-export const { add, update, remove, sort } = recipeReducer.actions;
+export default recipesReducer.reducer;
+export const { add, update, remove, sort } = recipesReducer.actions;

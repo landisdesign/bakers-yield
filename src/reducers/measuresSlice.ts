@@ -3,7 +3,7 @@ import { Measure } from './state';
 
 const recipeReducer = createSlice({
     name: 'measures',
-    initialState: {} as { [index: string]: Measure },
+    initialState: {} as { [index: number]: Measure },
     reducers: {
         set: {
             reducer(state, action) {
