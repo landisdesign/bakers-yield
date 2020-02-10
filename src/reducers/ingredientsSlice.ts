@@ -8,7 +8,7 @@ const ingredientsReducer = createSlice({
     id: defaultIngredientList.length
   },
   reducers: {
-    add: {
+    addIngredient: {
       reducer(state, action) {
         let { name } = action.payload;
         name = name.trim();
@@ -37,7 +37,7 @@ const ingredientsReducer = createSlice({
         return { payload };
       }
     },
-    remove: {
+    removeIngredient: {
       reducer(state, action) {
         const id = action.payload;
 
@@ -50,16 +50,41 @@ const ingredientsReducer = createSlice({
         if (ingredient.recipeCount) {
           ingredient.recipeCount--;
           if (!ingredient.recipeCount) {
-            state.list.slice(ingredientIndex, 1);
+            state.list.splice(ingredientIndex, 1);
           }
         }
       },
       prepare(id: number) {
         return { payload: id };
       }
+    },
+    removeIngredients: {
+      reducer(state, action) {
+        const ids: number[] = action.payload;
+        const indices = ids
+          .map(id => state.list.findIndex(x => x.id === id))
+          .sort((a,b) => b - a) // reverse to permit splicing without disrupting earlier list order
+        ;
+
+        indices.forEach(index => {
+          const ingredient = state.list[index];
+          if (!ingredient || !('recipeCount' in ingredient)) { // previously deleted in loop or undeleteable
+            return;
+          }
+          if (ingredient.recipeCount) {
+            ingredient.recipeCount--;
+            if (!ingredient.recipeCount) {
+              state.list.splice(index, 1);
+            }
+          }
+        });
+      },
+      prepare(ids: number[]) {
+        return { payload: ids };
+      }
     }
   }
 });
 
 export default ingredientsReducer.reducer;
-export const { add, remove } = ingredientsReducer.actions;
+export const { addIngredient, removeIngredient, removeIngredients } = ingredientsReducer.actions;
