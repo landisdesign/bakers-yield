@@ -1,5 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Recipe } from './state';
+import { AppThunk } from '.';
+import { removeIngredients } from './ingredientsSlice';
 
 type Sorter = (a: Recipe, b: Recipe) => number;
 
@@ -22,7 +24,7 @@ const recipesReducer = createSlice({
         id: 0
     },
     reducers: {
-        add: {
+        addRecipe: {
             reducer(state, action) {
                 const recipe = action.payload;
                 state.id++;
@@ -35,7 +37,7 @@ const recipesReducer = createSlice({
                 return { payload: recipe };
             }
         },
-        update: {
+        updateRecipe: {
             reducer(state, action) {
                 const recipe = action.payload;
                 const listIndex = state.list.findIndex(x => recipe.id === x.id);
@@ -51,18 +53,16 @@ const recipesReducer = createSlice({
         },
         remove: {
             reducer(state, action) {
-                const recipeID = action.payload;
-                const listIndex = state.list.findIndex(x => recipeID === x.id);
-                if (listIndex != -1) {
-                    state.list.splice(listIndex, 1);
-                    delete state.map[recipeID];
-                }
+              const recipeID = action.payload;
+              const listIndex = state.list.findIndex(x => recipeID === x.id);
+              state.list.splice(listIndex, 1);
+              delete state.map[recipeID];
             },
-            prepare(recipe: Recipe) {
-                return { payload: recipe.id };
+            prepare(recipeID: number) {
+                return { payload: recipeID };
             }
         },
-        sort: {
+        sortRecipe: {
             reducer(state, action) {
                 Object.assign(state, action.payload);
                 state.list.sort(recipeSorter(state.sortByID, state.sortDescending));
@@ -76,4 +76,13 @@ const recipesReducer = createSlice({
 });
 
 export default recipesReducer.reducer;
-export const { add, update, remove, sort } = recipesReducer.actions;
+export const { addRecipe, updateRecipe, sortRecipe } = recipesReducer.actions;
+
+export const removeRecipe = (recipe: Recipe): AppThunk => async (dispatch, getState) => {
+  const state = getState();
+  const recipeID = recipe.id;
+  if (recipeID in state.recipes.map) {
+    dispatch(removeIngredients(recipe.ingredients.map(ingredient => ingredient.ingredientID)));
+    dispatch(recipesReducer.actions.remove(recipe.id));
+  }
+}
