@@ -1,13 +1,15 @@
-import React, { useReducer, useCallback } from 'react';
+import React, { useReducer } from 'react';
 import { useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
 
-import Table from '@material-ui/core/Table';
-
-import { Recipe, Measure, defaultIngredientRatios, Ingredient } from '../reducers/state';
 import { RootState } from '../reducers';
+import { Recipe, defaultIngredientRatios, Ingredient } from '../reducers/state';
+
+import arraysEqual from '../utils/arraysEqual';
+import configureReducer from '../utils/configureReducer';
+import objectsEqual from '../utils/objectsEqual';
 
 import IngredientRow from './IngredientRow';
+import formReducerConfig from './formReducerConfig';
 
 interface FormProps {
   recipeID?: number;
@@ -15,12 +17,9 @@ interface FormProps {
   readonly?: boolean;
 }
 
-interface RecipeState {
+export type FormState = Required<Omit<FormProps, 'recipeID'>> & {
   recipe: Recipe;
-  measure: Measure;
-}
-
-export type FormState = RecipeState & Required<Omit<FormProps, 'recipeID'>>;
+};
 
 const Form: React.FC<FormProps> = (props) => {
   const {
@@ -30,48 +29,49 @@ const Form: React.FC<FormProps> = (props) => {
   } = props;
 
   const ingredients = useSelector<RootState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const recipe = useSelector<RootState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
+  const initialState = {
+    edit,
+    readonly,
+    recipe
+  };
 
-  const getRecipeForID = useCallback(state => getRecipe(state, recipeID), [recipeID]);
-  const recipeState = useSelector<RootState, Omit<FormState, 'readonly' | 'edit'>>(getRecipeForID);
-  const initialState = Object.assign({edit, readonly}, recipeID === -1 ? defaultState : recipeState);
-
-  const [formState, formDispatch] = useReducer(formReducer, initialState);
+  const reducer = configureReducer(formReducerConfig);
+  const [formState, formDispatch] = useReducer(reducer, initialState);
 
   return (
     <form>
-      <Table>
-        { formState.recipe.ingredients.map((_, i) => <IngredientRow row={i} ingredients={ingredients} state={formState} dispatch={formDispatch} />) }
-      </Table>
+      <table>
+        { formState.recipe.ingredients.map((_: any, i: number) => <IngredientRow row={i} ingredients={ingredients} state={formState} dispatch={formDispatch} />) }
+      </table>
     </form>
   );
 }
 
-const getRecipe = createSelector(
-  (state: RootState, recipeID: number) => state.recipes.map[recipeID],
-  (state: RootState, recipeID: number) => state.measures[recipeID],
-  (recipe: Recipe, measure: Measure) => ({recipe, measure})
-);
+const getRecipe = (recipeID: number) => (state: RootState) => state.recipes.map[recipeID];
 
-const defaultState: Omit<FormState, 'readonly' | 'edit'> = {
-  recipe: {
-    name: '',
-    id: 0,
-    isStarter: false,
-    ingredients: defaultIngredientRatios,
-    totalProportion: 0,
-    measureByPortion: true,
-    portionSize: 0
-  },
-  measure: {
-    recipeID: 0,
-    weights: (new Array(defaultIngredientRatios.length)).fill(0) as number[],
-    totalWeight: 0,
-    portions: 0
+const recipeUnchanged = (a: Recipe, b: Recipe) => {
+  if (a === b) {
+    return true;
   }
-};
-
-const formReducer = (action: any, state: FormState) => {
-  return state;
+  if (!a || !b) {
+    return false;
+  }
+  return objectsEqual(a, b, {
+    ingredients: arraysEqual(objectsEqual())
+  })
 }
+
+const defaultRecipe: Recipe = {
+  name: '',
+  id: -1,
+  isStarter: false,
+  ingredients: defaultIngredientRatios,
+  totalProportion: 0,
+  totalWeight: 0,
+  measureByPortion: true,
+  portionSize: 0,
+  portionCount: 0
+};
 
 export default Form;
