@@ -1,11 +1,11 @@
 import { BinaryPredicate } from "./objectsEqual";
 
-function arraysEqual<T>(f?: BinaryPredicate<T>): (a: T, b: T) => boolean;
+function arraysEqual<T>(f?: BinaryPredicate<T>): (a: T[], b: T[]) => boolean;
 function arraysEqual<T>(a: T[], b: T[], f?: BinaryPredicate<T>): boolean;
 
 function arraysEqual<T>(a?: T[] | BinaryPredicate<T>, b?: T[], f?: BinaryPredicate<T>) {
   if (arguments.length < 2) {
-    const f = a as BinaryPredicate<T> ?? ((a, b) => a === b);
+    const f = (a ?? ((a, b) => a === b)) as BinaryPredicate<T>;
     return (a: T[], b: T[]) => arraysEqual(a, b, f);
   }
   if (!a || !b) {
