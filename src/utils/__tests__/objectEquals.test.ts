@@ -1,4 +1,4 @@
-import objectsEqual, { BinaryPredicateMap } from '../objectsEqual';
+import objectsEqual from '../objectsEqual';
 
 test('Equality passes', () => {
   const testObj = {};
