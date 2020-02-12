@@ -42,16 +42,25 @@ const createAction = (type: string, loader?: ActionPreparer) =>
     : () => ({type})
 ;
 
-export interface ActionDefinitions<S> {
-  [index: string]: ActionDefinition<S>;
+export type ActionDefinitions<S, T = _ActionDefinitions<S>> = {
+  [K in keyof T]: ActionDefinition<S, T[K]>;
 }
-export type ActionDefinition<S> = ActionReducer<S> | {
+type _ActionDefinitions<S> = {
+  [index: string]: ActionReducerWithPreparer<S> | ActionReducer<S>;
+}
+
+export type ActionDefinition<S, Reducer = ActionReducerWithPreparer<S> | ActionReducer<S>> = Reducer extends {
+  prepare: ActionPreparer;
+} ? ActionReducerWithPreparer<S> : ActionReducer<S>;
+
+
+export type ActionReducerWithPreparer<S> = {
   reduce: ActionReducer<S>;
   prepare: ActionPreparer;
-};
-type ActionReducer<S> = (action: Action, state: S) => S;
+}
+export type ActionReducer<S> = (action: Action, state: S) => S;
 type ActionPreparer = (...args: any[]) => Omit<Action, 'type'>;
-interface Action {
+export interface Action {
   type: string;
   payload?: any;
   meta?: any;
