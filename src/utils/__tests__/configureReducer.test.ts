@@ -1,4 +1,4 @@
-import configureReducer, { ActionDefinitions, wrapActionDefinitions } from '../configureReducer';
+import configureReducer, { wrapActionDefinitions } from '../configureReducer';
 
 interface TestState {
   a: string;
