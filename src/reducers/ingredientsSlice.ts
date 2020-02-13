@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { defaultIngredientList, Recipe } from './state';
+import { defaultIngredientList, Recipe, Ingredient } from './state';
 
 const ingredientsReducer = createSlice({
   name: 'ingredients',
@@ -12,8 +12,12 @@ const ingredientsReducer = createSlice({
           starterRecipeID
         } = action.payload;
         const testName = name.toLowerCase();
-        const oldIngredientIndex = state.findIndex(ingredient => ingredient.name.toLowerCase() === testName);
-        if (oldIngredientIndex === -1) {
+        const oldIngredient = state.find(ingredient => ingredient.name.toLowerCase() === testName);
+        if (oldIngredient) {
+          oldIngredient.name = name;
+          oldIngredient.starterRecipeID = starterRecipeID;
+        }
+        else {
           const newIngredient = {
             name,
             starterRecipeID,
@@ -21,11 +25,6 @@ const ingredientsReducer = createSlice({
           }
           state.push(newIngredient);
           state.sort();
-        }
-        else {
-          let oldIngredient = state[oldIngredientIndex];
-          oldIngredient.name = name;
-          oldIngredient.starterRecipeID = starterRecipeID;
         }
       },
       prepare(recipe: Recipe) {
@@ -41,9 +40,15 @@ const ingredientsReducer = createSlice({
       reducer(state, action) {
         const name = action.payload;
         const testName = name.toLowerCase();
-        const ingredient = state.find(ingredient => ingredient.name.toLowerCase() === testName);
+        const ingredientIndex = state.findIndex(ingredient => ingredient.name.toLowerCase() === testName);
+        const ingredient = state[ingredientIndex];
         if (ingredient) {
-          delete ingredient.starterRecipeID;
+          if ('recipeCount' in ingredient && !ingredient.recipeCount) {
+            state.splice(ingredientIndex, 1);
+          }
+          else {
+            delete ingredient.starterRecipeID;
+          }
         }
       },
       prepare(recipe: Recipe) {
@@ -84,7 +89,7 @@ const ingredientsReducer = createSlice({
 
         let doomedIngredientIndices: number[] = [];
         remove.forEach(name => {
-          const testName = name.toLowerCase();
+          const testName = name.trim().toLowerCase();
           const doomedIndex = nameMap[testName] ?? -1;
           const ingredient = state[doomedIndex];
           if (ingredient && ingredient.recipeCount) {
@@ -98,7 +103,7 @@ const ingredientsReducer = createSlice({
         doomedIngredientIndices.sort((a, b) => b - a); // reverse to permit splicing from end backwards
         doomedIngredientIndices.forEach(doomedIndex => state.splice(doomedIndex, 1));
 
-        state.sort();
+        state.sort(sortNames);
       },
       prepare({ add, remove }: MergeList) {
         return {
@@ -111,6 +116,12 @@ const ingredientsReducer = createSlice({
 
 export default ingredientsReducer.reducer;
 export const { addStarterRecipe, removeStarterRecipe, mergeIngredients } = ingredientsReducer.actions;
+
+const sortNames = (a: Ingredient, b: Ingredient) => {
+  const nameA = a.name.toLowerCase();
+  const nameB = b.name.toLowerCase();
+  return nameA < nameB ? -1 : (nameA > nameB ? 1 : 0);
+}
 
 interface MergeList {
   add?: string[];

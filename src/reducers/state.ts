@@ -1,7 +1,7 @@
 export interface Ingredient {
   name: string;
   recipeCount?: number;
-  starterRecipeID?: string;
+  starterRecipeID?: number;
 }
 
 export interface IngredientRatio {
