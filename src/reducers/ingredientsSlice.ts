@@ -1,10 +1,57 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { defaultIngredientList } from './state';
+import { defaultIngredientList, Recipe } from './state';
 
 const ingredientsReducer = createSlice({
   name: 'ingredients',
   initialState: defaultIngredientList,
   reducers: {
+    addStarterRecipe: {
+      reducer(state, action) {
+        const {
+          name,
+          starterRecipeID
+        } = action.payload;
+        const testName = name.toLowerCase();
+        const oldIngredientIndex = state.findIndex(ingredient => ingredient.name.toLowerCase() === testName);
+        if (oldIngredientIndex === -1) {
+          const newIngredient = {
+            name,
+            starterRecipeID,
+            recipeCount: 0 // starter recipes are added outside of adding to another reccipe
+          }
+          state.push(newIngredient);
+          state.sort();
+        }
+        else {
+          let oldIngredient = state[oldIngredientIndex];
+          oldIngredient.name = name;
+          oldIngredient.starterRecipeID = starterRecipeID;
+        }
+      },
+      prepare(recipe: Recipe) {
+        return {
+          payload: {
+            name: recipe.name,
+            starterRecipeID: recipe.id
+          }
+        };
+      }
+    },
+    removeStarterRecipe: {
+      reducer(state, action) {
+        const name = action.payload;
+        const testName = name.toLowerCase();
+        const ingredient = state.find(ingredient => ingredient.name.toLowerCase() === testName);
+        if (ingredient) {
+          delete ingredient.starterRecipeID;
+        }
+      },
+      prepare(recipe: Recipe) {
+        return {
+          payload: recipe.name
+        };
+      }
+    },
     mergeIngredients: {
       reducer(state, action) {
         const {
@@ -42,7 +89,7 @@ const ingredientsReducer = createSlice({
           const ingredient = state[doomedIndex];
           if (ingredient && ingredient.recipeCount) {
             ingredient.recipeCount--;
-            if (!ingredient.recipeCount) {
+            if (!ingredient.recipeCount && !('starterRecipeID' in ingredient)) {
               doomedIngredientIndices.push(doomedIndex);
               delete nameMap[testName];
             }
@@ -63,7 +110,7 @@ const ingredientsReducer = createSlice({
 });
 
 export default ingredientsReducer.reducer;
-export const { mergeIngredients } = ingredientsReducer.actions;
+export const { addStarterRecipe, removeStarterRecipe, mergeIngredients } = ingredientsReducer.actions;
 
 interface MergeList {
   add?: string[];
