@@ -1,8 +1,8 @@
 import { FormState } from "./Form";
-import { ActionDefinitions, ActionDefinition, Action } from "../utils/configureReducer";
+import { ActionDefinition, Action, ActionReducer, wrapActionDefinitions } from "../utils/configureReducer";
 import { IngredientRatio } from "../reducers/state";
 
-const formReducerConfig: ActionDefinitions<FormState> = {
+const formReducerConfig = wrapActionDefinitions({
   addIngredientRow,
   removeIngredientRow: removeIngredientRow(),
   updateIngredientID: updateIngredientProperty('ingredientID'),
@@ -11,7 +11,7 @@ const formReducerConfig: ActionDefinitions<FormState> = {
   updatePortionSize: updatePortionSize(),
   updatePortionCount: updatePortionCount(),
   updateTotalWeight: updateTotalWeight()
-}
+});
 
 export default formReducerConfig;
 
@@ -51,7 +51,7 @@ function removeIngredientRow(): ActionDefinition<FormState> {
   };
 }
 
-function updateIngredientProperty(key: keyof IngredientRatio, postProcessor?: (action: any, state: FormState) => FormState): ActionDefinition<FormState> {
+function updateIngredientProperty(key: keyof IngredientRatio, postProcessor?: ActionReducer<FormState>): ActionDefinition<FormState> {
   return ({
     prepare(row: number, value: number) {
       return {
