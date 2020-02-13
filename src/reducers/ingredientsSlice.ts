@@ -13,34 +13,38 @@ const ingredientsReducer = createSlice({
         }: MergeList = action.payload;
 
         const nameMap = state.reduce((names, ingredient, i) => {
-          names[ingredient.name] = i;
+          names[ingredient.name.toLowerCase()] = i;
           return names;
         }, {} as NameMap);
 
         add.forEach(name => {
-          if (name in nameMap) {
-            const ingredient = state[nameMap[name]];
+          const cleanedName = name.trim();
+          const testName = cleanedName.toLowerCase();
+          if (testName in nameMap) {
+            const ingredient = state[nameMap[testName]];
             if (ingredient.recipeCount) {
               ingredient.recipeCount++;
             }
             return;
           }
           const ingredient = {
-            name,
+            name: cleanedName,
             recipeCount: 1
           }
-          nameMap[name] = state.length;
+          nameMap[testName] = state.length;
           state.push(ingredient);
         });
 
         let doomedIngredientIndices: number[] = [];
         remove.forEach(name => {
-          const doomedIndex = nameMap[name] ?? -1;
+          const testName = name.toLowerCase();
+          const doomedIndex = nameMap[testName] ?? -1;
           const ingredient = state[doomedIndex];
           if (ingredient && ingredient.recipeCount) {
             ingredient.recipeCount--;
             if (!ingredient.recipeCount) {
               doomedIngredientIndices.push(doomedIndex);
+              delete nameMap[testName];
             }
           }
         });
