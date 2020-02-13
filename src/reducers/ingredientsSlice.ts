@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { defaultIngredientList, Recipe, Ingredient } from './state';
 
-const ingredientsReducer = createSlice({
+const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState: defaultIngredientList,
   reducers: {
@@ -114,8 +114,8 @@ const ingredientsReducer = createSlice({
   }
 });
 
-export default ingredientsReducer.reducer;
-export const { addStarterRecipe, removeStarterRecipe, mergeIngredients } = ingredientsReducer.actions;
+export default ingredientsSlice.reducer;
+export const { addStarterRecipe, removeStarterRecipe, mergeIngredients } = ingredientsSlice.actions;
 
 const sortNames = (a: Ingredient, b: Ingredient) => {
   const nameA = a.name.toLowerCase();
