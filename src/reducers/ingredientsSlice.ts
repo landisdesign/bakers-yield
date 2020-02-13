@@ -1,90 +1,71 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Ingredient, defaultIngredientList } from './state';
+import { defaultIngredientList } from './state';
 
 const ingredientsReducer = createSlice({
   name: 'ingredients',
-  initialState: {
-    list: defaultIngredientList,
-    id: defaultIngredientList.length
-  },
+  initialState: defaultIngredientList,
   reducers: {
-    addIngredient: {
+    mergeIngredients: {
       reducer(state, action) {
-        let { name } = action.payload;
-        name = name.trim();
-        const testName = name.toLowerCase();
+        const {
+          add = [],
+          remove = []
+        }: MergeList = action.payload;
 
-        const existingIngredient = state.list.find(x => x.name.toLowerCase() === testName);
-        if (existingIngredient) {
-          if (!existingIngredient.starterRecipeID && existingIngredient.recipeCount) {
-            existingIngredient.recipeCount++;
-          }
-          return;
-        }
+        const nameMap = state.reduce((names, ingredient, i) => {
+          names[ingredient.name] = i;
+          return names;
+        }, {} as NameMap);
 
-        state.id++;
-        const newIngredient = {
-          ...action.payload,
-          id: state.id
-        };
-        if (!newIngredient.starterRecipeID) {
-          newIngredient.recipeCount = 1;
-        }
-        state.list.push(newIngredient);
-        state.list.sort();
-      },
-      prepare(payload: Omit<Ingredient, 'recipeCount' | 'id'>) {
-        return { payload };
-      }
-    },
-    removeIngredient: {
-      reducer(state, action) {
-        const id = action.payload;
-
-        const ingredientIndex = state.list.findIndex(x => x.id === id);
-        if (ingredientIndex === -1) {
-          return;
-        }
-
-        const ingredient = state.list[ingredientIndex];
-        if (ingredient.recipeCount) {
-          ingredient.recipeCount--;
-          if (!ingredient.recipeCount) {
-            state.list.splice(ingredientIndex, 1);
-          }
-        }
-      },
-      prepare(id: number) {
-        return { payload: id };
-      }
-    },
-    removeIngredients: {
-      reducer(state, action) {
-        const ids: number[] = action.payload;
-        const indices = ids
-          .map(id => state.list.findIndex(x => x.id === id))
-          .sort((a,b) => b - a) // reverse to permit splicing without disrupting earlier list order
-        ;
-
-        indices.forEach(index => {
-          const ingredient = state.list[index];
-          if (!ingredient || !('recipeCount' in ingredient)) { // previously deleted in loop or undeleteable
+        add.forEach(name => {
+          if (name in nameMap) {
+            const ingredient = state[nameMap[name]];
+            if (ingredient.recipeCount) {
+              ingredient.recipeCount++;
+            }
             return;
           }
-          if (ingredient.recipeCount) {
+          const ingredient = {
+            name,
+            recipeCount: 1
+          }
+          nameMap[name] = state.length;
+          state.push(ingredient);
+        });
+
+        let doomedIngredientIndices: number[] = [];
+        remove.forEach(name => {
+          const doomedIndex = nameMap[name] ?? -1;
+          const ingredient = state[doomedIndex];
+          if (ingredient && ingredient.recipeCount) {
             ingredient.recipeCount--;
             if (!ingredient.recipeCount) {
-              state.list.splice(index, 1);
+              doomedIngredientIndices.push(doomedIndex);
             }
           }
         });
+        doomedIngredientIndices.sort((a, b) => b - a); // reverse to permit splicing from end backwards
+        doomedIngredientIndices.forEach(doomedIndex => state.splice(doomedIndex, 1));
+
+        state.sort();
       },
-      prepare(ids: number[]) {
-        return { payload: ids };
+      prepare({ add, remove }: MergeList) {
+        return {
+          payload: { add, remove }
+        };
       }
     }
   }
 });
 
 export default ingredientsReducer.reducer;
-export const { addIngredient, removeIngredient, removeIngredients } = ingredientsReducer.actions;
+export const { mergeIngredients } = ingredientsReducer.actions;
+
+interface MergeList {
+  add?: string[];
+  remove?: string[];
+}
+
+interface NameMap {
+  [index: string]: number;
+}

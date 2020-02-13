@@ -1,12 +1,11 @@
 export interface Ingredient {
   name: string;
-  id: number;
   recipeCount?: number;
   starterRecipeID?: string;
 }
 
 export interface IngredientRatio {
-  ingredientID: number;
+  ingredient: string;
   proportion: number;
   weight: number;
   percentage: number;
@@ -27,26 +26,22 @@ export interface Recipe {
 // Not including recipeCount prevents deletion when no longer used in recipes
 export const defaultIngredientList: Ingredient[] = [
   {
-    name: 'Flour',
-    id: 1
+    name: 'Flour'
   },
   {
-    name: 'Water',
-    id: 2
+    name: 'Water'
   },
   {
-    name: 'Salt',
-    id: 3
+    name: 'Salt'
   },
   {
-    name: 'Yeast',
-    id: 4
+    name: 'Yeast'
   },
 ];
 
 export const defaultIngredientRatios: IngredientRatio[] = defaultIngredientList.map(
   ingredient => ({
-    ingredientID: ingredient.id,
+    ingredient: ingredient.name,
     proportion: 0,
     weight: 0,
     percentage: 0
