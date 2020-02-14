@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Recipe } from './state';
 import { AppThunk } from '.';
-import { removeIngredients } from './ingredientsSlice';
+import { mergeIngredients, removeStarterRecipe, addStarterRecipe } from './ingredientsSlice';
 
 type Sorter = (a: Recipe, b: Recipe) => number;
 
@@ -14,7 +14,7 @@ const recipeSorter = (byID: boolean, descending: boolean): Sorter => {
     return descending ? reverse(baseSorter) : baseSorter;
 }
 
-const recipesReducer = createSlice({
+const recipesSlice = createSlice({
     name: 'recipes',
     initialState: {
         list: [] as Recipe[],
@@ -24,7 +24,7 @@ const recipesReducer = createSlice({
         id: 0
     },
     reducers: {
-        addRecipe: {
+        add: {
             reducer(state, action) {
                 const recipe = action.payload;
                 state.id++;
@@ -37,7 +37,7 @@ const recipesReducer = createSlice({
                 return { payload: recipe };
             }
         },
-        updateRecipe: {
+        update: {
             reducer(state, action) {
                 const recipe = action.payload;
                 const listIndex = state.list.findIndex(x => recipe.id === x.id);
@@ -62,7 +62,7 @@ const recipesReducer = createSlice({
                 return { payload: recipeID };
             }
         },
-        sortRecipe: {
+        sortRecipes: {
             reducer(state, action) {
                 Object.assign(state, action.payload);
                 state.list.sort(recipeSorter(state.sortByID, state.sortDescending));
@@ -75,14 +75,47 @@ const recipesReducer = createSlice({
     }
 });
 
-export default recipesReducer.reducer;
-export const { addRecipe, updateRecipe, sortRecipe } = recipesReducer.actions;
+export default recipesSlice.reducer;
+export const { sortRecipes } = recipesSlice.actions;
+
+export const addRecipe = (recipe: Recipe): AppThunk => async dispatch => {
+  dispatch(recipesSlice.actions.add(recipe));
+  if (recipe.isStarter) {
+    dispatch(addStarterToIngredients(recipe.name));
+  }
+}
+
+const addStarterToIngredients = (name: string): AppThunk => async (dispatch, getState) => {
+  const recipe = getState().recipes.list.find(recipe => recipe.name === name);
+  if (recipe) {
+    dispatch(addStarterRecipe(recipe));
+  }
+}
 
 export const removeRecipe = (recipe: Recipe): AppThunk => async (dispatch, getState) => {
   const state = getState();
   const recipeID = recipe.id;
   if (recipeID in state.recipes.map) {
-    dispatch(removeIngredients(recipe.ingredients.map(ingredient => ingredient.ingredientID)));
-    dispatch(recipesReducer.actions.remove(recipe.id));
+    if (recipe.isStarter) {
+      dispatch(removeStarterRecipe(recipe));
+    }
+    dispatch(mergeIngredients({remove: recipe.ingredients.map(ingredient => ingredient.ingredient)}));
+    dispatch(recipesSlice.actions.remove(recipe.id));
   }
+}
+
+export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getState) => {
+  const oldRecipe = getState().recipes.map[recipe.id];
+  if (recipe.isStarter !== oldRecipe.isStarter) {
+    if (recipe.isStarter) {
+      dispatch(addStarterRecipe(recipe));
+    }
+    else {
+      dispatch(removeStarterRecipe(recipe));
+    }
+  }
+  if (recipe.isStarter && recipe.name !== oldRecipe.name) {
+    dispatch(addStarterRecipe(recipe));
+  }
+  dispatch(recipesSlice.actions.update(recipe));
 }
