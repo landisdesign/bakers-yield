@@ -78,7 +78,7 @@ const recipesSlice = createSlice({
 export default recipesSlice.reducer;
 export const { sortRecipes } = recipesSlice.actions;
 
-export const addRecipe = (recipe: Recipe): AppThunk => async dispatch => {
+export const addRecipe = (recipe: Omit<Recipe, 'id'>): AppThunk => async dispatch => {
   dispatch(recipesSlice.actions.add(recipe));
   if (recipe.isStarter) {
     dispatch(addStarterToIngredients(recipe.name));
@@ -119,3 +119,8 @@ export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
   }
   dispatch(recipesSlice.actions.update(recipe));
 }
+
+export const __internal_actions_for_testing_purposes_only__ = ((internalActions) => {
+  const { add, update, remove } = internalActions;
+  return { add, update, remove };
+})(recipesSlice.actions);
