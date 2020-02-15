@@ -1,5 +1,6 @@
 export interface Ingredient {
   name: string;
+  id: number;
   recipeCount?: number;
   starterRecipeID?: number;
 }
@@ -26,16 +27,20 @@ export interface Recipe {
 // Not including recipeCount prevents deletion when no longer used in recipes
 export const defaultIngredientList: Ingredient[] = [
   {
-    name: 'Flour'
+    name: 'Flour',
+    id: 1
   },
   {
-    name: 'Water'
+    name: 'Water',
+    id: 2
   },
   {
-    name: 'Salt'
+    name: 'Salt',
+    id: 3
   },
   {
-    name: 'Yeast'
+    name: 'Yeast',
+    id: 4
   },
 ];
 

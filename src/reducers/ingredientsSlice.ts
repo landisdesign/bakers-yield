@@ -3,7 +3,10 @@ import { defaultIngredientList, Recipe, Ingredient } from './state';
 
 const ingredientsSlice = createSlice({
   name: 'ingredients',
-  initialState: defaultIngredientList,
+  initialState: {
+    list: defaultIngredientList,
+    id: defaultIngredientList.length
+  },
   reducers: {
     addStarterRecipe: {
       reducer(state, action) {
@@ -12,19 +15,21 @@ const ingredientsSlice = createSlice({
           starterRecipeID
         } = action.payload;
         const testName = name.toLowerCase();
-        const oldIngredient = state.find(ingredient => ingredient.name.toLowerCase() === testName);
+        const oldIngredient = state.list.find(ingredient => ingredient.name.toLowerCase() === testName);
         if (oldIngredient) {
           oldIngredient.name = name;
           oldIngredient.starterRecipeID = starterRecipeID;
         }
         else {
+          state.id++;
           const newIngredient = {
             name,
             starterRecipeID,
+            id: state.id,
             recipeCount: 0 // starter recipes are added outside of adding to another reccipe
           }
-          state.push(newIngredient);
-          state.sort();
+          state.list.push(newIngredient);
+          state.list.sort();
         }
       },
       prepare(recipe: Recipe) {
@@ -38,13 +43,12 @@ const ingredientsSlice = createSlice({
     },
     removeStarterRecipe: {
       reducer(state, action) {
-        const name = action.payload;
-        const testName = name.toLowerCase();
-        const ingredientIndex = state.findIndex(ingredient => ingredient.name.toLowerCase() === testName);
-        const ingredient = state[ingredientIndex];
+        const id = action.payload;
+        const ingredientIndex = state.list.findIndex(ingredient => ingredient.starterRecipeID === id);
+        const ingredient = state.list[ingredientIndex];
         if (ingredient) {
           if ('recipeCount' in ingredient && !ingredient.recipeCount) {
-            state.splice(ingredientIndex, 1);
+            state.list.splice(ingredientIndex, 1);
           }
           else {
             delete ingredient.starterRecipeID;
@@ -53,7 +57,7 @@ const ingredientsSlice = createSlice({
       },
       prepare(recipe: Recipe) {
         return {
-          payload: recipe.name
+          payload: recipe.id
         };
       }
     },
@@ -64,7 +68,7 @@ const ingredientsSlice = createSlice({
           remove = []
         }: MergeList = action.payload;
 
-        const nameMap = state.reduce((names, ingredient, i) => {
+        const nameMap = state.list.reduce((names, ingredient, i) => {
           names[ingredient.name.toLowerCase()] = i;
           return names;
         }, {} as NameMap);
@@ -73,25 +77,27 @@ const ingredientsSlice = createSlice({
           const cleanedName = name.trim();
           const testName = cleanedName.toLowerCase();
           if (testName in nameMap) {
-            const ingredient = state[nameMap[testName]];
+            const ingredient = state.list[nameMap[testName]];
             if (ingredient.recipeCount) {
               ingredient.recipeCount++;
             }
             return;
           }
+          state.id++;
           const ingredient = {
             name: cleanedName,
-            recipeCount: 1
+            recipeCount: 1,
+            id: state.id
           }
-          nameMap[testName] = state.length;
-          state.push(ingredient);
+          nameMap[testName] = state.list.length;
+          state.list.push(ingredient);
         });
 
         let doomedIngredientIndices: number[] = [];
         remove.forEach(name => {
           const testName = name.trim().toLowerCase();
           const doomedIndex = nameMap[testName] ?? -1;
-          const ingredient = state[doomedIndex];
+          const ingredient = state.list[doomedIndex];
           if (ingredient && ingredient.recipeCount) {
             ingredient.recipeCount--;
             if (!ingredient.recipeCount && !('starterRecipeID' in ingredient)) {
@@ -101,9 +107,9 @@ const ingredientsSlice = createSlice({
           }
         });
         doomedIngredientIndices.sort((a, b) => b - a); // reverse to permit splicing from end backwards
-        doomedIngredientIndices.forEach(doomedIndex => state.splice(doomedIndex, 1));
+        doomedIngredientIndices.forEach(doomedIndex => state.list.splice(doomedIndex, 1));
 
-        state.sort(sortNames);
+        state.list.sort(sortNames);
       },
       prepare({ add, remove }: MergeList) {
         return {
@@ -126,6 +132,11 @@ const sortNames = (a: Ingredient, b: Ingredient) => {
 export interface MergeList {
   add?: string[];
   remove?: string[];
+}
+
+export interface IngredientsState {
+  list: Ingredient[];
+  id: number;
 }
 
 interface NameMap {
