@@ -28,7 +28,7 @@ const Form: React.FC<FormProps> = (props) => {
     readonly = false
   } = props;
 
-  const ingredients = useSelector<RootState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const ingredients = useSelector<RootState, Ingredient[]>(state => state.ingredients, (a, b) => a.length === b.length);
   const recipe = useSelector<RootState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
   const initialState = {
     edit,
