@@ -3,12 +3,21 @@ export const wrapActionDefinitions = <AD extends ActionDefinitions<S, AD>, S = A
 const configureReducer = <AD extends ActionDefinitions<S, AD>, S = ActionDefinitionsState<AD>>(actionDefinitions: AD) => {
   const types = Object.keys(actionDefinitions);
 
-  const {
-    actions,
-    reducers
-  } = types.reduce(
-    collectCreatorsAndReducers<S, AD>(actionDefinitions),
-    { actions: {}, reducers: {} } as ReducerAccumulator<S, AD>
+  const { actions, reducers }: ReducerAccumulator<AD, S> = types.reduce(
+    (accumulator, type) => {
+      const key = type as keyof AD;
+      const actionDefinition = actionDefinitions[key] as unknown;
+      if (typeof actionDefinition === 'function') {
+        accumulator.actions[key] = createAction(type);
+        accumulator.reducers[key] = actionDefinition as ActionReducer<S>;
+      }
+      else {
+        accumulator.actions[key] = createAction(type, (actionDefinition as ActionReducerWithPreparer<S>).prepare);
+        accumulator.reducers[key] = (actionDefinition as ActionReducerWithPreparer<S>).reduce;
+      }
+      return accumulator;
+    },
+    { actions: {}, reducers: {} } as ReducerAccumulator<AD, S>
   );
 
   const reducer = (action: any, state: S) => action && action.type && reducers[action.type as keyof AD] ? reducers[action.type as keyof AD](action, state) : state;
@@ -19,21 +28,6 @@ const configureReducer = <AD extends ActionDefinitions<S, AD>, S = ActionDefinit
 }
 
 export default configureReducer;
-
-const collectCreatorsAndReducers = <S, AD extends ActionDefinitions<S, AD>>(actionDefinitions: AD) =>
-  (accumulator: ReducerAccumulator<S, AD>, type: string) => {
-    const actionDefinition = actionDefinitions[type as keyof AD] as unknown;
-    if (typeof actionDefinition === 'function') {
-      accumulator.actions[type as keyof AD] = createAction(type);
-      accumulator.reducers[type as keyof AD] = actionDefinition as ActionReducer<S>;
-    }
-    else {
-      accumulator.actions[type as keyof AD] = createAction(type, (actionDefinition as ActionReducerWithPreparer<S>).prepare);
-      accumulator.reducers[type as keyof AD] = (actionDefinition as ActionReducerWithPreparer<S>).reduce;
-    }
-    return accumulator;
-  }
-;
 
 const createAction = (type: string, loader?: ActionPreparer) =>
   loader
@@ -47,16 +41,20 @@ const createAction = (type: string, loader?: ActionPreparer) =>
 export type ActionDefinitions<S extends any, T = ActionDefinitions<S, unknown>> = {
   [K in keyof T]: ActionDefinition<S, T[K]>;
 }
-type ActionDefinitionsState<A extends ActionDefinitions<any, T>, T = A> = A extends ActionDefinitions<infer S, T> ? S : never;
+type ActionDefinitionsState<AD = ActionDefinitions<any>> = AD extends ActionDefinitions<infer S> ? S : never;
 
-export type ActionDefinition<S extends any, Reducer = ActionReducerWithPreparer<S> | ActionReducer<S>> = Reducer extends ActionReducerWithPreparer<S> ? ActionReducerWithPreparer<S> : ActionReducer<S>;
+export type ActionDefinition<S extends any, R = ActionReducerWithPreparer<S> | ActionReducer<S>> = R extends ActionReducerWithPreparer<S> ? ActionReducerWithPreparer<S> : ActionReducer<S>;
+type ActionDefinitionState<R, AD = ActionDefinition<any, R>> = AD extends ActionDefinition<infer S> ? S : never;
 
 export type ActionReducerWithPreparer<S extends any> = {
   reduce: ActionReducer<S>;
   prepare: ActionPreparer;
 }
+type ActionReducerWithPreparerState<ARWP extends ActionReducerWithPreparer<any>> = ARWP extends ActionReducerWithPreparer<infer S> ? S : never;
 
-export type ActionReducer<S> = (action: any, state: S) => S;
+export type ActionReducer<S extends any> = (action: any, state: S) => S;
+type ActionReducerState<AR extends ActionReducer<any>> = AR extends ActionReducer<infer S> ? S : never;
+
 type ActionPreparer = (...args: any[]) => Omit<Action, 'type'>;
 export interface Action {
   type: string;
@@ -65,13 +63,13 @@ export interface Action {
   error?: boolean;
 }
 
-type ReducerMap<S, AD> = {
+type ReducerMap<AD, S> = {
   [K in keyof AD]: ActionReducer<S>;
 }
 type CreatorMap<AD> = {
   [K in keyof AD]: (...args: any[]) => Action;
 }
-interface ReducerAccumulator<S, AD> {
+type ReducerAccumulator<AD, S> = {
   actions: CreatorMap<AD>;
-  reducers: ReducerMap<S, AD>
+  reducers: ReducerMap<AD, S>;
 };

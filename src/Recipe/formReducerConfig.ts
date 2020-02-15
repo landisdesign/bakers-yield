@@ -5,7 +5,7 @@ import { IngredientRatio } from "../reducers/state";
 const formReducerConfig = wrapActionDefinitions({
   addIngredientRow,
   removeIngredientRow: removeIngredientRow(),
-  updateIngredientID: updateIngredientProperty('ingredientID'),
+  updateIngredientID: updateIngredientProperty('ingredient'),
   updateIngredientWeight: updateIngredientProperty('weight', updateWeights),
   updateIngredientProportion: updateIngredientProperty('proportion', updateRecipeProportions),
   updatePortionSize: updatePortionSize(),
@@ -65,20 +65,19 @@ function updateIngredientProperty(key: keyof IngredientRatio, postProcessor?: Ac
       const {
         row,
         value
-      } = action.payload;
+      }: {row: number, value: number} = action.payload;
 
       if (rowOutOfRange(state, row)) {
         return state;
       }
 
-      let newState = {
+      const newState: FormState = {
         ...state,
         recipe: {
           ...state.recipe,
-          ingredients: state.recipe.ingredients.map(ingredient => ({...ingredient}))
+          ingredients: state.recipe.ingredients.map((ingredient, i) => i === row ? {...ingredient, [key]: value} : {...ingredient})
         }
       };
-      newState.recipe.ingredients[row][key] = value;
       return postProcessor ? postProcessor(action, newState) : newState;
     }
   });
