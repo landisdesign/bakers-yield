@@ -123,7 +123,7 @@ const sortNames = (a: Ingredient, b: Ingredient) => {
   return nameA < nameB ? -1 : (nameA > nameB ? 1 : 0);
 }
 
-interface MergeList {
+export interface MergeList {
   add?: string[];
   remove?: string[];
 }

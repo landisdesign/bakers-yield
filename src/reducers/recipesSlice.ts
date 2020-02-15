@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Recipe } from './state';
 import { AppThunk } from '.';
-import { mergeIngredients, removeStarterRecipe, addStarterRecipe } from './ingredientsSlice';
+import { mergeIngredients, removeStarterRecipe, addStarterRecipe, MergeList } from './ingredientsSlice';
 
 type Sorter = (a: Recipe, b: Recipe) => number;
 
@@ -39,7 +39,10 @@ const recipesSlice = createSlice({
         },
         update: {
             reducer(state, action) {
-                const recipe = action.payload;
+                const recipe = {
+                  ...action.payload,
+                  ingredients: [ ...action.payload.ingredients ]
+                };
                 const listIndex = state.list.findIndex(x => recipe.id === x.id);
                 if (listIndex != -1) {
                     state.map[recipe.id] = recipe;
@@ -117,7 +120,36 @@ export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
   if (recipe.isStarter && recipe.name !== oldRecipe.name) {
     dispatch(addStarterRecipe(recipe));
   }
+
+  const ingredientChanges = getIngredientUpdate(oldRecipe, recipe);
+  if (ingredientChanges) {
+    dispatch(mergeIngredients(ingredientChanges));
+  }
+
   dispatch(recipesSlice.actions.update(recipe));
+}
+
+const getIngredientUpdate = (oldRecipe: Recipe, newRecipe: Recipe): MergeList | null => {
+
+  const oldIngredientNames = oldRecipe.ingredients.reduce((namesObj: { [index: string]: boolean }, ingredient) => {
+    namesObj[ingredient.ingredient] = true;
+    return namesObj;
+  }, {});
+
+  const add = newRecipe.ingredients.reduce((nameList: string[], ingredient) => {
+    const name = ingredient.ingredient;
+    if (name in oldIngredientNames) {
+      delete oldIngredientNames[name];
+    }
+    else {
+      nameList.push(name);
+    }
+    return nameList;
+  }, []);
+
+  const remove = Object.keys(oldIngredientNames);
+
+  return add.length || remove.length ? { add, remove } : null;
 }
 
 export const __internal_actions_for_testing_purposes_only__ = ((internalActions) => {
