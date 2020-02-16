@@ -88,20 +88,21 @@ const ingredientsSlice = createSlice({
           remove = []
         }: MergeList = action.payload;
 
-        const nameMap = state.list.reduce((names, ingredient, i) => {
-          names[ingredient.name.toLowerCase()] = i;
-          return names;
-        }, {} as NameMap);
+        const maps = state.list.reduce((maps, ingredient, i) => {
+          maps.names[ingredient.name.toLowerCase()] = ingredient;
+          maps.indices[ingredient.id] = i;
+          return maps;
+        }, {names:{}, indices:{}} as IngredientsMap);
 
         add.forEach(name => {
           const cleanedName = name.trim();
           const testName = cleanedName.toLowerCase();
-          if (testName in nameMap) {
-            const ingredient = state.list[nameMap[testName]];
-            if (ingredient.recipeCount) {
-              ingredient.recipeCount++;
+          const oldIngredient = maps.names[testName];
+          if (oldIngredient) {
+            if (oldIngredient.recipeCount) {
+              oldIngredient.recipeCount++;
+              return;
             }
-            return;
           }
           state.id++;
           const ingredient = {
@@ -109,20 +110,20 @@ const ingredientsSlice = createSlice({
             recipeCount: 1,
             id: state.id
           }
-          nameMap[testName] = state.list.length;
+          maps.names[testName] = ingredient;
+          maps.indices[ingredient.id] = state.list.length;
           state.list.push(ingredient);
         });
 
         let doomedIngredientIndices: number[] = [];
-        remove.forEach(name => {
-          const testName = name.trim().toLowerCase();
-          const doomedIndex = nameMap[testName] ?? -1;
+        remove.forEach(id => {
+          const doomedIndex = maps.indices[id] ?? -1;
           const ingredient = state.list[doomedIndex];
           if (ingredient && ingredient.recipeCount) {
             ingredient.recipeCount--;
             if (!ingredient.recipeCount && !('starterRecipeID' in ingredient)) {
               doomedIngredientIndices.push(doomedIndex);
-              delete nameMap[testName];
+              delete maps.indices[id];
             }
           }
         });
@@ -151,7 +152,7 @@ const sortNames = (a: Ingredient, b: Ingredient) => {
 
 export interface MergeList {
   add?: string[];
-  remove?: string[];
+  remove?: number[];
 }
 
 export interface IngredientsState {
@@ -159,6 +160,11 @@ export interface IngredientsState {
   id: number;
 }
 
-interface NameMap {
-  [index: string]: number;
+interface IngredientsMap {
+  names: {
+    [index: string]: Ingredient;
+  };
+  indices: {
+    [index: number]: number;
+  }
 }
