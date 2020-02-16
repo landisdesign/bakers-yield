@@ -1,15 +1,14 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../reducers';
 import { Recipe, defaultIngredientRatios, Ingredient } from '../reducers/state';
 
 import arraysEqual from '../utils/arraysEqual';
-import configureReducer from '../utils/configureReducer';
 import objectsEqual from '../utils/objectsEqual';
 
 import IngredientRow from './IngredientRow';
-import formReducerConfig from './formReducerConfig';
+import reducer, { updateIngredientMatchList } from './formReducerConfig';
 
 interface FormProps {
   recipeID?: number;
@@ -19,6 +18,10 @@ interface FormProps {
 
 export type FormState = Required<Omit<FormProps, 'recipeID'>> & {
   recipe: Recipe;
+  existingIngredients: Ingredient[];
+  newIngredients: Ingredient[];
+  ingredientMatchText: string;
+  ingredientId: number;
 };
 
 const Form: React.FC<FormProps> = (props) => {
@@ -28,21 +31,30 @@ const Form: React.FC<FormProps> = (props) => {
     readonly = false
   } = props;
 
-  const ingredients = useSelector<RootState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
-  const recipe = useSelector<RootState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
-  const initialState = {
-    edit,
-    readonly,
-    recipe
-  };
+  const existingIngredients = useSelector<RootState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const storedRecipe = useSelector<RootState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
+  const initialState: FormState = useMemo(() => (
+    {
+      edit,
+      readonly,
+      existingIngredients,
+      newIngredients: [],
+      recipe: {
+        ...storedRecipe,
+        ingredients: [...storedRecipe.ingredients]
+      },
+      ingredientList: '',
+      ingredientId: -1,
+      ingredientMatchText: ''
+    }
+  ), [edit, readonly, existingIngredients, storedRecipe]);
 
-  const reducer = configureReducer(formReducerConfig);
-  const [formState, formDispatch] = useReducer(reducer, initialState);
+  const [formState, formDispatch]: [FormState, React.Dispatch<FormState>] = useReducer(reducer, initialState, (state) => updateIngredientMatchList({}, state));
 
   return (
     <form>
       <table>
-        { formState.recipe.ingredients.map((_: any, i: number) => <IngredientRow row={i} ingredients={ingredients} state={formState} dispatch={formDispatch} />) }
+        { formState.recipe.ingredients.map((_, i: number) => <IngredientRow row={i} state={formState} dispatch={formDispatch} />) }
       </table>
     </form>
   );

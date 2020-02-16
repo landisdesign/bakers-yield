@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FormState } from './Form';
-import { Ingredient } from '../reducers/state';
 
 interface IngredientProps {
   row: number;
   state: FormState;
-  ingredients: Ingredient[];
   dispatch: React.Dispatch<FormState>;
 }
 
 const IngredientRow: React.FC<IngredientProps> = (props) => {
   const {
     row,
-    state
+    state,
+    dispatch
   } = props;
 
-  const [ratio, setRatio] = useState(state.recipe.ingredients[row]?.proportion ?? 0);
-  const [weight, setWeight] = useState(state.measure.weights[row] ?? 0);
-  const [ingredient, setIngredient] = useState()
+  const ingredient = state.recipe.ingredients[row];
+  const ingredientID = ingredient.ingredientID;
+  const ingredientText = ingredientID
+    ? (ingredientID < 0 ? state.newIngredients : state.existingIngredients)
+      .find(ingredient => ingredient.id === ingredientID)?.name ?? ''
+    : '';
 
-  return <></>;
+  return <tr>
+    <td className='proportion'><input type='number' value={ingredient.proportion}/></td>
+    <td className='percentage'><div>{ingredient.percentage}</div></td>
+    <td className='ingredient'><input type='text' value={ingredientText}/></td>
+    <td className='delete'>X</td>
+    <td className='weight'><input type='number' value={ingredient.weight}/></td>
+  </tr>;
 }
 
 export default IngredientRow;
