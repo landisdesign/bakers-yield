@@ -6,7 +6,7 @@ export interface Ingredient {
 }
 
 export interface IngredientRatio {
-  ingredient: string;
+  ingredientID: number;
   proportion: number;
   weight: number;
   percentage: number;
@@ -46,7 +46,7 @@ export const defaultIngredientList: Ingredient[] = [
 
 export const defaultIngredientRatios: IngredientRatio[] = defaultIngredientList.map(
   ingredient => ({
-    ingredient: ingredient.name,
+    ingredientID: ingredient.id,
     proportion: 0,
     weight: 0,
     percentage: 0
