@@ -172,7 +172,10 @@ describe('Public actions update state properly', () => {
   }
 
   const getState = (): RootState => ({
-    ingredients: [] as Ingredient[],
+    ingredients: {
+      id: 0,
+      list: []
+    },
     recipes: {
       id: 2,
       list: [testRecipeWithID],
