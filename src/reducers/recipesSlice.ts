@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Recipe } from './state';
 import { AppThunk } from '.';
-import { mergeIngredients, removeStarterRecipe, addStarterRecipe, MergeList } from './ingredientsSlice';
+import { mergeIngredients, removeStarterRecipe, addStarterRecipe, MergeList, updateStarterRecipe } from './ingredientsSlice';
 
 type Sorter = (a: Recipe, b: Recipe) => number;
 
@@ -118,7 +118,7 @@ export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
     }
   }
   if (recipe.isStarter && recipe.name !== oldRecipe.name) {
-    dispatch(addStarterRecipe(recipe));
+    dispatch(updateStarterRecipe(recipe));
   }
 
   const ingredientChanges = getIngredientUpdate(oldRecipe, recipe);

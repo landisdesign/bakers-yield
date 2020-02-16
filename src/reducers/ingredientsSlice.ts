@@ -61,6 +61,26 @@ const ingredientsSlice = createSlice({
         };
       }
     },
+    updateStarterRecipe: {
+      reducer(state, action) {
+        const {
+          name,
+          id
+        } = action.payload;
+        const ingredient = state.list.find(ingredient => ingredient.starterRecipeID === id);
+        if (ingredient) {
+          ingredient.name = name;
+        }
+      },
+      prepare(recipe: Recipe) {
+        return {
+          payload: {
+            id: recipe.id,
+            name: recipe.name
+          }
+        }
+      }
+    },
     mergeIngredients: {
       reducer(state, action) {
         const {
@@ -121,7 +141,7 @@ const ingredientsSlice = createSlice({
 });
 
 export default ingredientsSlice.reducer;
-export const { addStarterRecipe, removeStarterRecipe, mergeIngredients } = ingredientsSlice.actions;
+export const { addStarterRecipe, removeStarterRecipe, updateStarterRecipe, mergeIngredients } = ingredientsSlice.actions;
 
 const sortNames = (a: Ingredient, b: Ingredient) => {
   const nameA = a.name.toLowerCase();

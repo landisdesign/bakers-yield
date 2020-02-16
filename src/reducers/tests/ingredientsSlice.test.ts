@@ -1,4 +1,4 @@
-import reducer, { addStarterRecipe, removeStarterRecipe, mergeIngredients, IngredientsState } from '../ingredientsSlice';
+import reducer, { addStarterRecipe, removeStarterRecipe, updateStarterRecipe, mergeIngredients, IngredientsState } from '../ingredientsSlice';
 import { Ingredient } from '../state';
 
 const testRecipe = {
@@ -37,6 +37,20 @@ describe('action creators return proper content', () => {
     };
 
     const actual = removeStarterRecipe(testRecipe);
+    expect(actual).toEqual(expected);
+  })
+
+  test('updateStarterRecipe', () => {
+
+    const expected = {
+      type: updateStarterRecipe.toString(),
+      payload: {
+        id: testRecipe.id,
+        name: testRecipe.name
+      },
+    };
+
+    const actual = updateStarterRecipe(testRecipe);
     expect(actual).toEqual(expected);
   })
 
@@ -163,6 +177,41 @@ describe('removeStarterRecipe state', () => {
     let expected = {
       id: testState.id,
       list: testState.list.filter(x => x.name !== testRecipe.name)
+    };
+
+    const actual = reducer(testState, testAction);
+    expect(actual).toEqual(expected);
+  })
+});
+
+describe('updateStarterRecipe state', () => {
+
+  test('Existing recipe updates ingredient with new name', () => {
+
+    const init = initialState();
+    const testState = {
+      id: init.id + 1,
+      list: [
+        ...init.list,
+        {
+          name: testRecipe.name,
+          recipeCount: 4,
+          id: init.id + 1,
+          starterRecipeID: testRecipe.id
+        }
+      ]
+    };
+
+    const updatedRecipe = {
+      ...testRecipe,
+      name: 'baz'
+    };
+
+    const testAction = updateStarterRecipe(updatedRecipe);
+
+    let expected = {
+      list: testState.list.map(x => x.starterRecipeID === testRecipe.id ? {...x, name: updatedRecipe.name} : x),
+      id: testState.id
     };
 
     const actual = reducer(testState, testAction);

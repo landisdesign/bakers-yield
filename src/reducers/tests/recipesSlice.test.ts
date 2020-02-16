@@ -1,6 +1,6 @@
 import reducer, { addRecipe, removeRecipe, updateRecipe, sortRecipes, __internal_actions_for_testing_purposes_only__ } from '../recipesSlice';
-import { Recipe, Ingredient } from '../state';
-import { addStarterRecipe, mergeIngredients, removeStarterRecipe } from '../ingredientsSlice';
+import { Recipe } from '../state';
+import { addStarterRecipe, mergeIngredients, removeStarterRecipe, updateStarterRecipe } from '../ingredientsSlice';
 import { RootState } from '..';
 import { Action } from 'redux';
 
@@ -333,7 +333,7 @@ describe('Public actions update state properly', () => {
       name: 'bar'
     };
     const expected = [
-      addStarterRecipe(testRecipe),
+      updateStarterRecipe(testRecipe),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
