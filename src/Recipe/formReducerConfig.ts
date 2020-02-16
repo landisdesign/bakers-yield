@@ -1,34 +1,66 @@
 import { FormState } from "./Form";
-import { ActionDefinition, Action, ActionReducer, wrapActionDefinitions } from "../utils/configureReducer";
-import { IngredientRatio } from "../reducers/state";
+import configureReducer, { ActionDefinition, Action, ActionReducer, wrapActionDefinitions } from "../utils/configureReducer";
+import { IngredientRatio, Ingredient } from "../reducers/state";
 
 const formReducerConfig = wrapActionDefinitions({
-  addIngredientRow,
-  removeIngredientRow: removeIngredientRow(),
-  updateIngredientID: updateIngredientProperty('ingredient'),
-  updateIngredientWeight: updateIngredientProperty('weight', updateWeights),
-  updateIngredientProportion: updateIngredientProperty('proportion', updateRecipeProportions),
-  updatePortionSize: updatePortionSize(),
-  updatePortionCount: updatePortionCount(),
-  updateTotalWeight: updateTotalWeight()
+  addIngredientRow: addIngredientRowReducer(),
+  removeIngredientRow: removeIngredientRowReducer(),
+  updateIngredientID: updateIngredientPropertyReducer('ingredientID'),
+  updateIngredientWeight: updateIngredientPropertyReducer('weight', updateWeightsProcessor),
+  updateIngredientProportion: updateIngredientPropertyReducer('proportion', updateRecipeProportionsProcessor),
+  addNewIngredient: addNewIngredientReducer(),
+  removeNewIngredient: removeNewIngredientReducer(),
+  updatePortionSize: updatePortionSizeReducer(),
+  updatePortionCount: updatePortionCountReducer(),
+  updateTotalWeight: updateTotalWeightReducer(),
+  updateIngredientMatchList: updateIngredientMatchListReducer()
 });
 
-export default formReducerConfig;
+const reducer = configureReducer(formReducerConfig);
+const {
+  addIngredientRow,
+  removeIngredientRow,
+  updateIngredientID,
+  updateIngredientWeight,
+  updateIngredientProportion,
+  addNewIngredient,
+  removeNewIngredient,
+  updatePortionSize,
+  updatePortionCount,
+  updateTotalWeight,
+  updateIngredientMatchList,
+} = reducer.actions;
+export default reducer;
+export {
+  addIngredientRow,
+  removeIngredientRow,
+  updateIngredientID,
+  updateIngredientWeight,
+  updateIngredientProportion,
+  addNewIngredient,
+  removeNewIngredient,
+  updatePortionSize,
+  updatePortionCount,
+  updateTotalWeight,
+  updateIngredientMatchList,
+};
 
 /*
   Case Reducers
 */
-function addIngredientRow(_: Action, state: FormState) {
-  return {
-    ...state,
-    recipe: {
-      ...state.recipe,
-      ingredients: [...state.recipe.ingredients, {ingredientID: -1, proportion: 0, weight: 0, percentage: 0}]
-    }
-  };
+function addIngredientRowReducer() {
+  return function(_: Action, state: FormState) {
+    return {
+      ...state,
+      recipe: {
+        ...state.recipe,
+        ingredients: [...state.recipe.ingredients, {ingredientID: -1, proportion: 0, weight: 0, percentage: 0}]
+      }
+    };
+  }
 }
 
-function removeIngredientRow(): ActionDefinition<FormState> {
+function removeIngredientRowReducer(): ActionDefinition<FormState> {
   return {
     prepare(row: number){
       return { payload: row };
@@ -51,7 +83,7 @@ function removeIngredientRow(): ActionDefinition<FormState> {
   };
 }
 
-function updateIngredientProperty(key: keyof IngredientRatio, postProcessor?: ActionReducer<FormState>): ActionDefinition<FormState> {
+function updateIngredientPropertyReducer(key: keyof IngredientRatio, postProcessor?: ActionReducer<FormState>): ActionDefinition<FormState> {
   return ({
     prepare(row: number, value: number) {
       return {
@@ -83,7 +115,53 @@ function updateIngredientProperty(key: keyof IngredientRatio, postProcessor?: Ac
   });
 };
 
-function updatePortionSize(): ActionDefinition<FormState> {
+function addNewIngredientReducer(): ActionDefinition<FormState> {
+  return {
+    prepare(name: string) {
+      return { payload: name};
+    },
+    reduce(action, state) {
+      const name = action.payload;
+      const newState: FormState = {
+        ...state,
+        newIngredients: [...state.newIngredients]
+      }
+      newState.ingredientId--;
+      const newIngredient: Ingredient = {
+        id: newState.ingredientId,
+        name
+      };
+      newState.newIngredients.push(newIngredient);
+      return newState;
+    }
+  };
+}
+
+function removeNewIngredientReducer(): ActionDefinition<FormState> {
+  return {
+    prepare(ingredient: Ingredient) {
+      return { payload: ingredient.id};
+    },
+    reduce(action, state) {
+      const id = action.payload;
+      const newIngredients = [...state.newIngredients];
+      const doomedIndex = newIngredients.findIndex(ingredient => ingredient.id === id);
+
+      if (doomedIndex === -1) {
+        return state;
+      }
+
+      newIngredients.splice(doomedIndex, 1);
+
+      return {
+        ...state,
+        newIngredients
+      };
+    }
+  };
+}
+
+function updatePortionSizeReducer(): ActionDefinition<FormState> {
   return {
     prepare(portionSize: number) {
       return { payload: portionSize };
@@ -100,7 +178,7 @@ function updatePortionSize(): ActionDefinition<FormState> {
   };
 }
 
-function updatePortionCount(): ActionDefinition<FormState> {
+function updatePortionCountReducer(): ActionDefinition<FormState> {
   return {
     prepare(count: number) {
       return { payload: count };
@@ -119,12 +197,12 @@ function updatePortionCount(): ActionDefinition<FormState> {
         }
       };
 
-      return updateWeights({ type: '', payload: { row: -1 } }, newState);
+      return updateWeightsProcessor({ type: '', payload: { row: -1 } }, newState);
     }
   };
 }
 
-function updateTotalWeight(): ActionDefinition<FormState> {
+function updateTotalWeightReducer(): ActionDefinition<FormState> {
   return {
     prepare(totalWeight: number) {
       return { payload: totalWeight };
@@ -141,7 +219,7 @@ function updateTotalWeight(): ActionDefinition<FormState> {
         }
       };
 
-      return updateWeights({ type: '', payload: { row: -1 } }, newState);
+      return updateWeightsProcessor({ type: '', payload: { row: -1 } }, newState);
     }
   };
 }
@@ -150,7 +228,7 @@ function updateTotalWeight(): ActionDefinition<FormState> {
   Ingredient postprocessors
 */
 
-function updateRecipeProportions(_: Action, state: FormState) {
+function updateRecipeProportionsProcessor(_: Action, state: FormState) {
   const {
     recipe
   } = state;
@@ -164,7 +242,7 @@ function updateRecipeProportions(_: Action, state: FormState) {
   return state;
 }
 
-function updateWeights(action: Action, state: FormState) {
+function updateWeightsProcessor(action: Action, state: FormState) {
   const {
     payload: { row }
   } = action;
@@ -188,6 +266,20 @@ function updateWeights(action: Action, state: FormState) {
   recipe.totalWeight = totalWeight;
 
   return state;
+}
+
+function updateIngredientMatchListReducer(): ActionReducer<FormState> {
+  return function(_, state){
+    const ingredients = state.newIngredients.concat(state.existingIngredients).sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      return nameA < nameB ? -1 : (nameA > nameB ? 1 : 0);
+    });
+    return {
+      ...state,
+      ingredientMatchText: ingredients.reduce((text, ingredient) => `${text}${ingredient.name}${'starterRecipeID' in ingredient ? ' •' : ''}¬${ingredient.id}\n`, '')
+    };
+  };
 }
 
 const rowOutOfRange = (state: FormState, row: number) => row < 0 || row > state.recipe.ingredients.length;
