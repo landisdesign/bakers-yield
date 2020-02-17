@@ -1,4 +1,4 @@
-import reducer, { addStarterRecipe, removeStarterRecipe, updateStarterRecipe, updateRecipeIngredients, mergeIngredients, IngredientsState, MergeList } from '../ingredientsSlice';
+import reducer, { addStarterRecipe, removeStarterRecipe, updateStarterRecipeName, updateRecipeIngredients, mergeIngredients, IngredientsState, MergeList } from '../ingredientsSlice';
 import { Ingredient, Recipe } from '../state';
 
 const testRecipe = {
@@ -13,13 +13,12 @@ const testRecipe = {
   measureByPortion: false
 };
 
-const buildState = (list: Ingredient[]): IngredientsState => ({
+const buildState = (list: Ingredient[] = []): IngredientsState => ({
   id: list.length,
   map: list.reduce((ids, ingredient) => {
     ids[ingredient.id] = ingredient;
     return ids;
   }, {} as {[index: number]: Ingredient}),
-  tempMap: {},
   list: list.map(x => ({...x}))
 });
 
@@ -50,17 +49,17 @@ describe('action creators return proper content', () => {
     expect(actual).toEqual(expected);
   })
 
-  test('updateStarterRecipe', () => {
+  test('updateStarterRecipeName', () => {
 
     const expected = {
-      type: updateStarterRecipe.toString(),
+      type: updateStarterRecipeName.toString(),
       payload: {
         id: testRecipe.id,
         name: testRecipe.name
       },
     };
 
-    const actual = updateStarterRecipe(testRecipe);
+    const actual = updateStarterRecipeName(testRecipe);
     expect(actual).toEqual(expected);
   })
 
@@ -199,7 +198,7 @@ describe('removeStarterRecipe state', () => {
   })
 });
 
-describe('updateStarterRecipe state', () => {
+describe('updateStarterRecipeName state', () => {
 
   test('Existing recipe updates ingredient with new name', () => {
 
@@ -219,7 +218,7 @@ describe('updateStarterRecipe state', () => {
       name: 'baz'
     };
 
-    const testAction = updateStarterRecipe(updatedRecipe);
+    const testAction = updateStarterRecipeName(updatedRecipe);
 
     let expected = buildState(testState.list.map(x => x.starterRecipeID === testRecipe.id ? {...x, name: updatedRecipe.name} : x));
 
@@ -245,18 +244,15 @@ describe('updateIngredients', () => {
         name: 'c'
       },
     ]);
-    initState.tempMap = {
-      [-1]: 3
-    };
     return initState;
   };
 
-  const testRecipe = (real: boolean):Recipe => ({
+  const buildRecipe = (real: boolean): Recipe => ({
     name: 'foo',
     id: 5,
     ingredients: [
       {
-        ingredientID: real ? 3 : -1,
+        ingredientID: real ? 4 : -1,
         weight: 0,
         percentage: 0,
         proportion: 0
@@ -270,28 +266,39 @@ describe('updateIngredients', () => {
     measureByPortion: false
   });
 
-  test('Updating a recipe with no new ingredients changes nothing', () => {
-    const state = initialState();
-    const test = testRecipe(true);
-    const expected = testRecipe(true);
+  const buildIngredient = (real: boolean = true, name: string = 'foo'): Ingredient => ({
+    name,
+    id: real ? 4 : -1,
+    recipeCount: 0
+  });
 
-    const testAction = updateRecipeIngredients(test);
+  test('Updating a recipe with no new ingredients changes nothing', () => {
+
+    const state = initialState();
+    const testRecipe = buildRecipe(true);
+    const testIngredient = buildIngredient(false);
+    const expected = buildRecipe(true);
+
+    const testAction = updateRecipeIngredients(testRecipe, [testIngredient]);
     reducer(state, testAction);
-    expect(test).toEqual(expected);
+    expect(testRecipe).toEqual(expected);
   });
 
   test('Updating a recipe with new ingredients updates new ingredients', () => {
+
     const state = initialState();
-    const expectedState = initialState();
-    expectedState.tempMap = {};
 
-    const test = testRecipe(false);
-    const expectedRecipe = testRecipe(true);
+    const testRecipe = buildRecipe(false);
+    const testIngredient = buildIngredient(false);
+    const expectedRecipe = buildRecipe(true);
 
-    const testAction = updateRecipeIngredients(test);
+    const expectedState = buildState([...state.list, buildIngredient(true)]
+      .sort(sortNames));
+
+    const testAction = updateRecipeIngredients(testRecipe, [testIngredient]);
     const actual = reducer(state, testAction);
     expect(actual).toEqual(expectedState);
-    expect(test).toEqual(expectedRecipe);
+    expect(testRecipe).toEqual(expectedRecipe);
   });
 });
 
@@ -326,55 +333,23 @@ describe('mergeIngredients state', () => {
     }
   ]);
 
-  const addedIngredients = [
-    {
-      name: 'aa',
-      id: -1
-    },
-    {
-      name: 'Bb',
-      id: -2
-    },
-    {
-      name: 'foo',
-      id: -3
-    },
-  ];
-  const removedIngredients = [
-    { // ingredient only used here; eligible for removal
-      name: 'b',
-      recipeCount: 1,
-      id: 2
-    },
-    { // ingredient only used here; eligible for removal
-      name: 'd',
-      recipeCount: 1,
-      id: 4
-    }
-  ]; // both will be removed
+  const addedIngredients = [1, 3];
+  const removedIngredients = [2, 4];
   const mergedIngredients: MergeList = {
     add: addedIngredients,
     remove: removedIngredients
   };
 
-  const sortNames = (a: Ingredient, b: Ingredient) => {
-    const nameA = a.name.toLowerCase();
-    const nameB = b.name.toLowerCase();
-    return nameA < nameB ? -1 : (nameA > nameB ? 1 : 0);
-  }
-
   test('Just adding ingredients, returns sorted', () => {
     const init = initialState();
-    const newIngredients = addedIngredients.map((ingredient, i) => ({name: ingredient.name, recipeCount: 1, id: init.id + 1 + i}));
-    const tempMap = addedIngredients.reduce((map, ingredient, i) => {
-      map[ingredient.id] = newIngredients[i].id;
-      return map;
-    }, {} as {[index: number]: number});
 
-    const expected = {
-      ...buildState([...init.list, ...newIngredients].sort(sortNames)),
-      tempMap
-    };
+    const expected = buildState(init.list.map(
+      ingredient =>
+        addedIngredients.includes(ingredient.id) && ('recipeCount' in ingredient)
+          ? {...ingredient, recipeCount: ingredient.recipeCount! + 1}
+          : ingredient
+      )
+    );
 
     const testAction = mergeIngredients({add: addedIngredients});
     const actual = reducer(initialState(), testAction);
@@ -384,7 +359,7 @@ describe('mergeIngredients state', () => {
   test('Just removing ingredients', () => {
     // a little squirelly to handle trimming
     const init = initialState();
-    let expected = buildState([...init.list.filter(ingredient => !removedIngredients.some(removedIngredient => removedIngredient.id === ingredient.id))]);
+    let expected = buildState([...init.list.filter(ingredient => !removedIngredients.some(id => id === ingredient.id))]);
     expected.id = init.id;
 
     const testAction = mergeIngredients({remove: removedIngredients});
@@ -394,54 +369,34 @@ describe('mergeIngredients state', () => {
 
   test('Adding and removing ingredients, added ingredients sorted', () => {
     const init = initialState();
-    const newIngredients = addedIngredients.map((ingredient, i) => ({name: ingredient.name, recipeCount: 1, id: init.id + 1 + i}));
-    const tempMap = addedIngredients.reduce((map, ingredient, i) => {
-      map[ingredient.id] = newIngredients[i].id;
-      return map;
-    }, {} as {[index: number]: number});
 
-    const expected = {
-      ...buildState([...init.list, ...newIngredients]
-        .filter(ingredient => !removedIngredients.some(removedIngredient => removedIngredient.id === ingredient.id))
-        .sort(sortNames)),
-      id: init.id + addedIngredients.length,
-      tempMap
-    };
+
+    const expected = buildState(init.list.map(
+      ingredient =>
+        addedIngredients.includes(ingredient.id) && ('recipeCount' in ingredient)
+          ? {...ingredient, recipeCount: ingredient.recipeCount! + 1}
+          : ingredient
+      ).filter(ingredient => !removedIngredients.some(id => id === ingredient.id))
+    );
+    expected.id = init.id;
 
     const testAction = mergeIngredients(mergedIngredients);
     const actual = reducer(initialState(), testAction);
     expect(actual).toEqual(expected);
   })
 
-  test('Adding a preexisting ingredient increments its recipeCount', () => {
-    const init = initialState();
-    const addedIngredient = init.list[1];
-    const list = init.list.map(ingredient => ingredient == addedIngredient ? {...ingredient, recipeCount: ingredient.recipeCount! + 1} : ingredient);
-
-    const expected = {
-      ...init,
-      list
-    };
-
-    const testAction = mergeIngredients({add: [addedIngredient]});
-    const actual = reducer(initialState(), testAction);
-    expect(actual).toEqual(expected);
-  })
-
   test('Adding a preexisting default ingredient does nothing', () => {
-    const addedIngredient = initialState().list[0];
-
     const expected = initialState();
 
-    const testAction = mergeIngredients({add: [addedIngredient]});
+    const testAction = mergeIngredients({add: [1]});
     const actual = reducer(initialState(), testAction);
     expect(actual).toEqual(expected);
   })
 
   test('Removing an ingredient used elsewhere decrements its usage count', () => {
     const init = initialState();
-    const remove = [{...init.list[2]}];
-    const expected = buildState(init.list.map(ingredient => remove.some(doomedIngredient => doomedIngredient.id === ingredient.id)
+    const remove = [3];
+    const expected = buildState(init.list.map(ingredient => remove.some(id => id === ingredient.id)
       ? {...ingredient, recipeCount: ingredient.recipeCount! - 1}
       : ingredient));
 
@@ -453,8 +408,8 @@ describe('mergeIngredients state', () => {
 
   test('Attempting to remove a starter recipe only used here fails', () => {
     const init = initialState();
-    const remove = init.list.filter(ingredient => ingredient.starterRecipeID === testRecipe.id);
-    const expected = buildState(init.list.map(ingredient => remove.some(doomedIngredient => doomedIngredient.id === ingredient.id)
+    const remove = [testRecipe.id];
+    const expected = buildState(init.list.map(ingredient => remove.some(id => id === ingredient.id)
     ? {...ingredient, recipeCount: ingredient.recipeCount! - 1}
     : ingredient));
 
@@ -464,7 +419,7 @@ describe('mergeIngredients state', () => {
   })
 
   test('Attempting to remove a default ingredient fails', () => {
-    const remove = [initialState().list[0]];
+    const remove = [1];
     const expected = initialState();
 
     const testAction = mergeIngredients({ remove });
@@ -472,3 +427,9 @@ describe('mergeIngredients state', () => {
     expect(actual).toEqual(expected);
   })
 });
+
+const sortNames = (a: Ingredient, b: Ingredient) => {
+  const nameA = a.name.toLowerCase();
+  const nameB = b.name.toLowerCase();
+  return nameA < nameB ? -1 : (nameA > nameB ? 1 : 0);
+}
