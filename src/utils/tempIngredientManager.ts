@@ -28,10 +28,13 @@ const getRealID = (tempIngredient: Ingredient) => {
   return realID;
 }
 
+const isTemp = (ingredient: Ingredient) => ingredient.id < 0;
+
 export default {
   create,
   register,
-  getRealID
+  getRealID,
+  isTemp
 };
 
 let tempID = -1;

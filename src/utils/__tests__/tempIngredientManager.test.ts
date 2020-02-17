@@ -73,3 +73,14 @@ test('Ingredients registered with manager can retrieve real IDs once', () => {
   const undefinedActual = manager.getRealID(fakeIngredient);
   expect(undefinedActual).toBeUndefined();
 });
+
+test('Determines if ingredient is real or temp', () => {
+  const fakeIngredient = manager.create('qunx');
+  const realIngredient = {
+    ...fakeIngredient,
+    id: 3
+  };
+
+  expect(manager.isTemp(fakeIngredient)).toBe(true);
+  expect(manager.isTemp(realIngredient)).toBe(false);
+});
