@@ -18,24 +18,14 @@ function create(nameOrRecipe: string | Recipe): Ingredient {
   };
 }
 
-const register = (tempIngredient: Ingredient, realIngredient: Ingredient) => {
-  idMap[tempIngredient.id] = realIngredient.id;
-}
-
-const getRealID = (tempIngredient: Ingredient) => {
-  const realID = idMap[tempIngredient.id];
-  delete idMap[tempIngredient.id];
-  return realID;
-}
-
 const isTemp = (ingredient: Ingredient) => ingredient.id < 0;
 
 export default {
   create,
-  register,
-  getRealID,
   isTemp
 };
 
+export const createTempIngredient = create;
+export const isTempIngredient = isTemp;
+
 let tempID = -1;
-let idMap : {[index: number]: number} = {};
