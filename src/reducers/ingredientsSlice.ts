@@ -1,12 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { defaultIngredientList, Recipe, Ingredient } from './state';
+import  { isTempIngredient } from '../utils/tempIngredientManager';
+ '../utils/tempIngredientManager';
 
 const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState: {
     list: defaultIngredientList,
-    id: defaultIngredientList.length
-  },
+    id: defaultIngredientList.length,
+    tempMap: {}
+  } as IngredientsState,
   reducers: {
     addStarterRecipe: {
       reducer(state, action) {
@@ -27,7 +30,7 @@ const ingredientsSlice = createSlice({
             starterRecipeID,
             id: state.id,
             recipeCount: 0 // starter recipes are added outside of adding to another reccipe
-          }
+          };
           state.list.push(newIngredient);
           state.list.sort();
         }
@@ -81,6 +84,21 @@ const ingredientsSlice = createSlice({
         }
       }
     },
+    updateRecipeIngredients: {
+      reducer(state, action) {
+        const recipe: Recipe = action.payload;
+        recipe.ingredients.forEach(ingredientRatio => {
+          const realID = state.tempMap[ingredientRatio.ingredientID];
+          if (realID) {
+            delete state.tempMap[ingredientRatio.ingredientID];
+            ingredientRatio.ingredientID = realID;
+          }
+        });
+      },
+      prepare(recipe: Recipe) {
+        return { payload: recipe };
+      }
+    },
     mergeIngredients: {
       reducer(state, action) {
         const {
@@ -88,43 +106,47 @@ const ingredientsSlice = createSlice({
           remove = []
         }: MergeList = action.payload;
 
-        const maps = state.list.reduce((maps, ingredient, i) => {
-          maps.names[ingredient.name.toLowerCase()] = ingredient;
-          maps.indices[ingredient.id] = i;
-          return maps;
-        }, {names:{}, indices:{}} as IngredientsMap);
+        const indexMap = state.list.reduce((map, ingredient, i) => {
+          map[ingredient.id] = i;
+          return map;
+        }, {} as {[index: number]: number});
 
-        add.forEach(name => {
-          const cleanedName = name.trim();
-          const testName = cleanedName.toLowerCase();
-          const oldIngredient = maps.names[testName];
+        add.forEach(ingredient => {
+          const oldIngredient = state.list[indexMap[ingredient.id] ?? -1];
           if (oldIngredient) {
-            if (oldIngredient.recipeCount) {
-              oldIngredient.recipeCount++;
-              return;
+            if ('recipeCount' in oldIngredient) {
+              oldIngredient.recipeCount!++;
             }
+            return;
           }
           state.id++;
-          const ingredient = {
-            name: cleanedName,
+          const newIngredient = {
+            name: ingredient.name,
             recipeCount: 1,
             id: state.id
+          };
+
+          if (isTempIngredient(ingredient)) {
+            state.tempMap[ingredient.id] = newIngredient.id;
           }
-          maps.names[testName] = ingredient;
-          maps.indices[ingredient.id] = state.list.length;
-          state.list.push(ingredient);
+
+          indexMap[newIngredient.id] = state.list.length;
+          state.list.push(newIngredient);
         });
 
         let doomedIngredientIndices: number[] = [];
-        remove.forEach(id => {
-          const doomedIndex = maps.indices[id] ?? -1;
-          const ingredient = state.list[doomedIndex];
-          if (ingredient && ingredient.recipeCount) {
-            ingredient.recipeCount--;
-            if (!ingredient.recipeCount && !('starterRecipeID' in ingredient)) {
+        remove.forEach(ingredient => {
+          const doomedIndex = indexMap[ingredient.id] ?? -1;
+          const doomedIngredient = state.list[doomedIndex];
+          if (doomedIngredient && doomedIngredient.recipeCount) {
+            doomedIngredient.recipeCount--;
+            if (!doomedIngredient.recipeCount && !('starterRecipeID' in doomedIngredient)) {
               doomedIngredientIndices.push(doomedIndex);
-              delete maps.indices[id];
+              delete indexMap[doomedIngredient.id];
             }
+          }
+          if (isTempIngredient(ingredient)) {
+            delete state.tempMap[ingredient.id];
           }
         });
         doomedIngredientIndices.sort((a, b) => b - a); // reverse to permit splicing from end backwards
@@ -142,7 +164,7 @@ const ingredientsSlice = createSlice({
 });
 
 export default ingredientsSlice.reducer;
-export const { addStarterRecipe, removeStarterRecipe, updateStarterRecipe, mergeIngredients } = ingredientsSlice.actions;
+export const { addStarterRecipe, removeStarterRecipe, updateStarterRecipe, updateRecipeIngredients, mergeIngredients } = ingredientsSlice.actions;
 
 const sortNames = (a: Ingredient, b: Ingredient) => {
   const nameA = a.name.toLowerCase();
@@ -151,20 +173,12 @@ const sortNames = (a: Ingredient, b: Ingredient) => {
 }
 
 export interface MergeList {
-  add?: string[];
-  remove?: number[];
+  add?: Ingredient[];
+  remove?: Ingredient[];
 }
 
 export interface IngredientsState {
   list: Ingredient[];
   id: number;
-}
-
-interface IngredientsMap {
-  names: {
-    [index: string]: Ingredient;
-  };
-  indices: {
-    [index: number]: number;
-  }
+  tempMap: {[index: number]: number};
 }
