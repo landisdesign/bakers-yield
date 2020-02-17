@@ -8,6 +8,10 @@ const ingredientsSlice = createSlice({
   initialState: {
     list: defaultIngredientList,
     id: defaultIngredientList.length,
+    map: defaultIngredientList.reduce((ids, ingredient) => {
+      ids[ingredient.id] = ingredient;
+      return ids;
+    }, {} as IngredientMap),
     tempMap: {}
   } as IngredientsState,
   reducers: {
@@ -22,6 +26,8 @@ const ingredientsSlice = createSlice({
         if (oldIngredient) {
           oldIngredient.name = name;
           oldIngredient.starterRecipeID = starterRecipeID;
+          // Immer doesn't keep reference between list and map object
+          state.map[oldIngredient.id] = oldIngredient;
         }
         else {
           state.id++;
@@ -31,6 +37,7 @@ const ingredientsSlice = createSlice({
             id: state.id,
             recipeCount: 0 // starter recipes are added outside of adding to another reccipe
           };
+          state.map[newIngredient.id] = newIngredient;
           state.list.push(newIngredient);
           state.list.sort();
         }
@@ -52,9 +59,12 @@ const ingredientsSlice = createSlice({
         if (ingredient) {
           if ('recipeCount' in ingredient && !ingredient.recipeCount) {
             state.list.splice(ingredientIndex, 1);
+            delete state.map[ingredient.id];
           }
           else {
             delete ingredient.starterRecipeID;
+            // Immer doesn't keep reference between list and map object
+            delete state.map[ingredient.id].starterRecipeID;
           }
         }
       },
@@ -73,6 +83,8 @@ const ingredientsSlice = createSlice({
         const ingredient = state.list.find(ingredient => ingredient.starterRecipeID === id);
         if (ingredient) {
           ingredient.name = name;
+          // Immer doesn't keep reference between list and map object
+          state.map[ingredient.id].name = name;
         }
       },
       prepare(recipe: Recipe) {
@@ -132,6 +144,7 @@ const ingredientsSlice = createSlice({
 
           indexMap[newIngredient.id] = state.list.length;
           state.list.push(newIngredient);
+          state.map[newIngredient.id] = newIngredient;
         });
 
         let doomedIngredientIndices: number[] = [];
@@ -143,6 +156,11 @@ const ingredientsSlice = createSlice({
             if (!doomedIngredient.recipeCount && !('starterRecipeID' in doomedIngredient)) {
               doomedIngredientIndices.push(doomedIndex);
               delete indexMap[doomedIngredient.id];
+              delete state.map[doomedIngredient.id];
+            }
+            else {
+              // Immer doesn't keep reference between list and map object
+              state.map[doomedIngredient.id] = doomedIngredient;
             }
           }
           if (isTempIngredient(ingredient)) {
@@ -177,8 +195,13 @@ export interface MergeList {
   remove?: Ingredient[];
 }
 
+interface IngredientMap {
+  [index: number]: Ingredient;
+}
+
 export interface IngredientsState {
   list: Ingredient[];
   id: number;
+  map: IngredientMap;
   tempMap: {[index: number]: number};
 }
