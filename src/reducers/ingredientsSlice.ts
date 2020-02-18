@@ -137,7 +137,7 @@ const ingredientsSlice = createSlice({
         });
         state.list.sort(sortNames);
       },
-      prepare(recipe: Recipe, tempIngredients: Ingredient[]) {
+      prepare(recipe: Recipe | Omit<Recipe, 'id'>, tempIngredients: Ingredient[]) {
         return { payload: {
           recipe,
           tempIngredients

@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Recipe } from './state';
-import { AppThunk } from '.';
-import { mergeIngredients, removeStarterRecipe, addStarterRecipe, MergeList, updateStarterRecipe } from './ingredientsSlice';
+import { Recipe, Ingredient } from './state';
+import { AppThunk, RootState } from '.';
+import { mergeIngredients, removeStarterRecipe, addStarterRecipe, MergeList, updateStarterRecipeName, updateRecipeIngredients } from './ingredientsSlice';
+import { createTempIngredient } from '../utils/tempIngredientManager';
 
 type Sorter = (a: Recipe, b: Recipe) => number;
 
@@ -81,7 +82,9 @@ const recipesSlice = createSlice({
 export default recipesSlice.reducer;
 export const { sortRecipes } = recipesSlice.actions;
 
-export const addRecipe = (recipe: Omit<Recipe, 'id'>): AppThunk => async dispatch => {
+export const addRecipe = (recipe: Omit<Recipe, 'id'>, newIngredients: Ingredient[] = []): AppThunk => async dispatch => {
+  dispatch(updateRecipeIngredients(recipe, newIngredients));
+  dispatch(mergeIngredients({add: recipe.ingredients.map(ingredient => ingredient.ingredientID)}));
   dispatch(recipesSlice.actions.add(recipe));
   if (recipe.isStarter) {
     dispatch(addStarterToIngredients(recipe.name));
@@ -99,16 +102,18 @@ export const removeRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
   const state = getState();
   const recipeID = recipe.id;
   if (recipeID in state.recipes.map) {
+    dispatch(mergeIngredients({remove: recipe.ingredients.map(ingredient => ingredient.ingredientID)}));
+    dispatch(recipesSlice.actions.remove(recipe.id));
     if (recipe.isStarter) {
       dispatch(removeStarterRecipe(recipe));
     }
-    dispatch(mergeIngredients({remove: recipe.ingredients.map(ingredient => ingredient.ingredient)}));
-    dispatch(recipesSlice.actions.remove(recipe.id));
   }
 }
 
-export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getState) => {
-  const oldRecipe = getState().recipes.map[recipe.id];
+export const updateRecipe = (recipe: Recipe, newIngredients: Ingredient[] = []): AppThunk => async (dispatch, getState) => {
+  const state = getState();
+  const oldRecipe = state.recipes.map[recipe.id];
+
   if (recipe.isStarter !== oldRecipe.isStarter) {
     if (recipe.isStarter) {
       dispatch(addStarterRecipe(recipe));
@@ -117,11 +122,14 @@ export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
       dispatch(removeStarterRecipe(recipe));
     }
   }
+
   if (recipe.isStarter && recipe.name !== oldRecipe.name) {
-    dispatch(updateStarterRecipe(recipe));
+    dispatch(updateStarterRecipeName(recipe));
   }
 
-  const ingredientChanges = getIngredientUpdate(oldRecipe, recipe);
+  dispatch(updateRecipeIngredients(recipe, newIngredients));
+
+  const ingredientChanges = getIngredientChanges(oldRecipe, recipe);
   if (ingredientChanges) {
     dispatch(mergeIngredients(ingredientChanges));
   }
@@ -129,25 +137,25 @@ export const updateRecipe = (recipe: Recipe): AppThunk => async (dispatch, getSt
   dispatch(recipesSlice.actions.update(recipe));
 }
 
-const getIngredientUpdate = (oldRecipe: Recipe, newRecipe: Recipe): MergeList | null => {
+const getIngredientChanges = (oldRecipe: Recipe, newRecipe: Recipe): MergeList | null => {
 
-  const oldIngredientNames = oldRecipe.ingredients.reduce((namesObj: { [index: string]: boolean }, ingredient) => {
-    namesObj[ingredient.ingredient] = true;
-    return namesObj;
-  }, {});
+  const oldIngredientIDs = oldRecipe.ingredients.reduce((idsObj, ingredient) => {
+    idsObj[ingredient.ingredientID] = true;
+    return idsObj;
+  }, {} as FoundNumbersMap);
 
-  const add = newRecipe.ingredients.reduce((nameList: string[], ingredient) => {
-    const name = ingredient.ingredient;
-    if (name in oldIngredientNames) {
-      delete oldIngredientNames[name];
+  const add = newRecipe.ingredients.reduce((ids: number[], ingredientRatio) => {
+    const id = ingredientRatio.ingredientID;
+    if (id in oldIngredientIDs) {
+      delete oldIngredientIDs[id];
     }
     else {
-      nameList.push(name);
+      ids.push(id);
     }
-    return nameList;
+    return ids;
   }, []);
 
-  const remove = Object.keys(oldIngredientNames);
+  const remove = Object.keys(oldIngredientIDs).map(x => +x);
 
   return add.length || remove.length ? { add, remove } : null;
 }
@@ -156,3 +164,7 @@ export const __internal_actions_for_testing_purposes_only__ = ((internalActions)
   const { add, update, remove } = internalActions;
   return { add, update, remove };
 })(recipesSlice.actions);
+
+interface FoundNumbersMap {
+  [index: number]: boolean;
+}

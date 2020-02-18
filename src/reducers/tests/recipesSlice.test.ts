@@ -1,6 +1,6 @@
 import reducer, { addRecipe, removeRecipe, updateRecipe, sortRecipes, __internal_actions_for_testing_purposes_only__ } from '../recipesSlice';
-import { Recipe } from '../state';
-import { addStarterRecipe, mergeIngredients, removeStarterRecipe, updateStarterRecipe } from '../ingredientsSlice';
+import { Recipe, Ingredient } from '../state';
+import { addStarterRecipe, mergeIngredients, removeStarterRecipe, updateStarterRecipeName, MergeList, updateRecipeIngredients } from '../ingredientsSlice';
 import { RootState } from '..';
 import { Action } from 'redux';
 
@@ -13,13 +13,13 @@ const testRecipeBase: Omit<Recipe, 'name' | 'id'> = {
   totalProportion: 0,
   ingredients: [
     {
-      ingredient: 'a',
+      ingredientID: 1,
       proportion: 0,
       percentage: 0,
       weight: 0
     },
     {
-      ingredient: 'b',
+      ingredientID: 2,
       proportion: 0,
       percentage: 0,
       weight: 0
@@ -27,7 +27,7 @@ const testRecipeBase: Omit<Recipe, 'name' | 'id'> = {
   ]
 };
 
-describe('Synchronous action creators return proper actions', () => {
+describe('Public synchronous action creators return proper actions', () => {
 
   test('sortRecipes', () => {
     let expected = {
@@ -159,7 +159,7 @@ describe('Internal actions update state properly', () => {
   });
 });
 
-describe('Public actions update state properly', () => {
+describe('Public asynchronous actions update state properly', () => {
 
   const testRecipe = {
     ...testRecipeBase,
@@ -171,30 +171,85 @@ describe('Public actions update state properly', () => {
     id: 2
   }
 
-  const getState = (): RootState => ({
-    ingredients: {
-      id: 0,
-      list: []
-    },
-    recipes: {
-      id: 2,
-      list: [testRecipeWithID],
-      map: { 2: testRecipeWithID },
-      sortByID: false,
-      sortDescending: false
-    }
-  });
+  const getState = (): RootState => {
+    const list = [
+      {
+        id: 1,
+        name: 'foo'
+      },
+      {
+        id: 2,
+        name: 'bar'
+      }
+    ];
+    return {
+      ingredients: {
+        id: 3,
+        list,
+        map: list.reduce((ids, ingredient) => {
+          ids[ingredient.id] = ingredient;
+          return ids;
+        }, {} as {[index:number]:Ingredient})
+      },
+      recipes: {
+        id: 2,
+        list: [testRecipeWithID],
+        map: { 2: testRecipeWithID },
+        sortByID: false,
+        sortDescending: false
+      }
+    };
+  };
 
   test('Adding standard recipe updates properly', () => {
     const testRecipe = {
       ...testRecipeBase,
       name: 'foo'
     };
-    const expected = __internal_actions_for_testing_purposes_only__.add(testRecipe);
+    const testMergePayload: MergeList = {
+      add: testRecipe.ingredients.map(ingredient => ingredient.ingredientID)
+    };
+
+    const expected = [
+      updateRecipeIngredients(testRecipe, []),
+      mergeIngredients(testMergePayload),
+      __internal_actions_for_testing_purposes_only__.add(testRecipe)
+    ];
 
     const actual = getThunkActions(addRecipe(testRecipe), getState);
-    expect(actual).toHaveLength(1);
-    expect(actual.actions[0]).toEqual(expected);
+    expect(actual).toHaveLength(expected.length);
+    expect(actual.actions).toEqual(expected);
+  });
+
+  test('Adding standard recipe with new ingredients updates properly', () => {
+    let testRecipe: Omit<Recipe, 'id'> = {
+      ...testRecipeBase,
+      name: 'foo'
+    };
+    testRecipe.ingredients = [...testRecipe.ingredients, {
+      ingredientID: -1,
+      proportion: 0,
+      percentage: 0,
+      weight: 0
+    }];
+    const newIngredient: Ingredient = {
+      id: -1,
+      name: 'foo'
+    };
+
+    const testMergePayload: MergeList = {
+      add: testRecipe.ingredients.map(ingredient => ingredient.ingredientID)
+    };
+
+    const expected = [
+      updateRecipeIngredients(testRecipe, [newIngredient]),
+      mergeIngredients(testMergePayload),
+      __internal_actions_for_testing_purposes_only__.add(testRecipe)
+    ];
+
+    const actual = getThunkActions(addRecipe(testRecipe, [newIngredient]), getState);
+    expect(actual).toHaveLength(expected.length);
+    expect(actual.actions).toEqual(expected);
   });
 
   test('Adding starter recipe updates recipes and ingredients', async () => {
@@ -203,13 +258,21 @@ describe('Public actions update state properly', () => {
       name: 'bar',
       isStarter: true
     };
-    const expectedFirstAction = __internal_actions_for_testing_purposes_only__.add(testRecipe);
+    const testMergePayload: MergeList = {
+      add: testRecipe.ingredients.map(ingredient => ingredient.ingredientID)
+    };
+
+    const expectedFirstctions = [
+      updateRecipeIngredients(testRecipe, []),
+      mergeIngredients(testMergePayload),
+      __internal_actions_for_testing_purposes_only__.add(testRecipe)
+    ];
 
     let actual = getThunkActions(addRecipe(testRecipe), getState);
-    expect(actual).toHaveLength(2);
-    expect(actual.actions).toHaveLength(1);
-    expect(actual.actions[0]).toEqual(expectedFirstAction);
+    expect(actual.actions).toHaveLength(expectedFirstctions.length);
+    expect(actual.actions).toEqual(expectedFirstctions);
 
+    expect(actual.thunks).toHaveLength(1);
     const internalThunk = actual.thunks[0]; // the async function returned to dispatch
 
     const updatedRecipe = {
@@ -237,7 +300,7 @@ describe('Public actions update state properly', () => {
       ...initState.recipes.list[0]
     };
     const removedIngredients = {
-      remove: testRecipe.ingredients.map(ingredient => ingredient.ingredient)
+      remove: testRecipe.ingredients.map(ingredient => ingredient.ingredientID)
     };
     const expected = [
       mergeIngredients(removedIngredients),
@@ -255,12 +318,12 @@ describe('Public actions update state properly', () => {
       isStarter: true
     };
     const removedIngredients = {
-      remove: testRecipe.ingredients.map(ingredient => ingredient.ingredient)
+      remove: testRecipe.ingredients.map(ingredient => ingredient.ingredientID)
     };
     const expected = [
-      removeStarterRecipe(testRecipe),
       mergeIngredients(removedIngredients),
-      __internal_actions_for_testing_purposes_only__.remove(testRecipe.id)
+      __internal_actions_for_testing_purposes_only__.remove(testRecipe.id),
+      removeStarterRecipe(testRecipe)
     ];
 
     const actual = getThunkActions(removeRecipe(testRecipe), () => initState);
@@ -275,6 +338,7 @@ describe('Public actions update state properly', () => {
       name: 'bar'
     };
     const expected = [
+      updateRecipeIngredients(testRecipe, []),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
@@ -287,10 +351,11 @@ describe('Public actions update state properly', () => {
     const originalRecipe = initState.recipes.list[0];
     const testRecipe = {
       ...originalRecipe,
-      ingredients: originalRecipe.ingredients.map(ingredient => ingredient.ingredient === 'b' ? {...ingredient, ingredient: 'c'} : ingredient)
+      ingredients: originalRecipe.ingredients.map(ingredient => ingredient.ingredientID === 2 ? {...ingredient, ingredientID: 3} : ingredient)
     };
     const expected = [
-      mergeIngredients({add: ['c'], remove: ['b']}),
+      updateRecipeIngredients(testRecipe, []),
+      mergeIngredients({add: [3], remove: [2]}),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
@@ -306,6 +371,7 @@ describe('Public actions update state properly', () => {
     };
     const expectedToStarter = [
       addStarterRecipe(testRecipe),
+      updateRecipeIngredients(testRecipe, []),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
@@ -318,6 +384,7 @@ describe('Public actions update state properly', () => {
     initState.recipes.list[0].isStarter = true;
     const expectedFromStarter = [
       removeStarterRecipe(testRecipe),
+      updateRecipeIngredients(testRecipe, []),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
@@ -333,7 +400,8 @@ describe('Public actions update state properly', () => {
       name: 'bar'
     };
     const expected = [
-      updateStarterRecipe(testRecipe),
+      updateStarterRecipeName(testRecipe),
+      updateRecipeIngredients(testRecipe, []),
       __internal_actions_for_testing_purposes_only__.update(testRecipe)
     ];
 
