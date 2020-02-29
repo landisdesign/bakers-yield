@@ -88,23 +88,24 @@ test('Starter recipe added and ingredients updated', () => {
   };
 
   const expectedRecipe = {
-    ...createRecipe('foo', [2, 3, 4, 6]),
+    ...createRecipe('foo', [2, 3, 4, 6], true),
     id: 5
   };
 
   const newIngredient: Ingredient = {
-    id: 7,
+    id: 6,
     name: 'bar',
     recipeCount: 1
   };
   const newStarter: Ingredient = {
-    id: 6,
+    id: 7,
     name: 'foo',
     recipeCount: 0,
     starterRecipeID: 5
   };
   let expectedIngredients = initialState.ingredients.list.map(x => 'recipeCount' in x ? { ...x, recipeCount: x.recipeCount! + 1} : { ...x });
-  expectedIngredients.unshift(newIngredient, newStarter);
+  expectedIngredients.unshift(newIngredient);
+  expectedIngredients.splice(2, 0, newStarter);
 
   let expected = {
     id: 8,
