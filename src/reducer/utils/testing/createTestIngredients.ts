@@ -1,4 +1,4 @@
-import { Ingredient } from "../../../state";
+import { Ingredient } from "../../state";
 
 const createTestIngredients = (): Ingredient[] => [
   {
