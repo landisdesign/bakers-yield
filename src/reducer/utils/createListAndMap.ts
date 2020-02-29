@@ -1,12 +1,13 @@
-import { ListAndMap, Identified } from "../state";
+import { ListAndMap } from "../state";
+import { Identified, NumberMap } from "../../utils/types";
 
 const createListAndMap = <T extends Identified>(list: T[]): ListAndMap<T> => ({
   list: [...list],
-  ...list.reduce((mapAndIndices, item, index) => {
-    mapAndIndices.map[item.id] = item;
-    mapAndIndices.indices[item.id] = index;
-    return mapAndIndices;
-  }, {map:{}, indices:{}} as {map: {[index:number]: T}, indices: {[index: number]: number}})
+  map: list.reduce((map, item) => {
+    map[item.id] = item;
+    return map;
+  },
+  {} as NumberMap<T>)
 });
 
 export default createListAndMap;

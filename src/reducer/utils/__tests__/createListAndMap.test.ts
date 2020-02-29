@@ -1,4 +1,5 @@
-import { Identified, ListAndMap } from "../../state";
+import { ListAndMap } from "../../state";
+import { Identified } from "../../../utils/types";
 import createListAndMap from '../createListAndMap';
 
 test('Map created properly', () => {
@@ -14,11 +15,6 @@ test('Map created properly', () => {
       1: list[0],
       3: list[1],
       6: list[2]
-    },
-    indices: {
-      1: 0,
-      3: 1,
-      6: 2
     }
   };
 

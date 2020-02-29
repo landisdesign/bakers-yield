@@ -9,7 +9,6 @@ export interface ApplicationState {
 export interface ListAndMap<T extends Identified> {
   list: T[];
   map: NumberMap<T>;
-  indices: NumberMap<number>;
 };
 
 export interface Recipe extends Identified, Named {
@@ -37,12 +36,10 @@ export interface Ingredient extends Identified, Named {
 export const defaultState: ApplicationState = {
   recipes: {
     list: [],
-    indices: {},
     map: {}
   },
   ingredients: {
     list: [],
-    indices: {},
     map: {}
   },
   id: 0
