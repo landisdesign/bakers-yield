@@ -1,8 +1,8 @@
 import { Recipe, ApplicationState } from "../state";
-import createListAndMap from "../utils/createListAndMap";
-import getIngredientChanges from "../utils/getIngredientChanges";
-import updateIngredients from "../utils/updateIngredients";
-import addStarterIngredient from "../utils/addStarterIngredient";
+import createListAndMap from "./utils/createListAndMap";
+import getIngredientChanges from "./utils/getIngredientChanges";
+import updateIngredients from "./utils/updateIngredients";
+import addStarterIngredient from "./utils/addStarterIngredient";
 import sortNames from "../../utils/sortNames";
 
 function prepare(recipe: Omit<Recipe, 'id'>) {

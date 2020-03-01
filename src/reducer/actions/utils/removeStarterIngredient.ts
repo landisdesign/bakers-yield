@@ -1,4 +1,4 @@
-import { Ingredient } from "../state";
+import { Ingredient } from "../../state";
 
 const removeStarterIngredient = (ingredients: Ingredient[], starterRecipeID: number): Ingredient[] => {
   const starterIndex = ingredients.findIndex(ingredient => ingredient.starterRecipeID === starterRecipeID);

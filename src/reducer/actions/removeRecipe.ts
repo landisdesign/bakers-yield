@@ -1,8 +1,8 @@
 import { Recipe, ApplicationState } from "../state";
-import getIngredientChanges from "../utils/getIngredientChanges";
-import updateIngredients from "../utils/updateIngredients";
-import createListAndMap from "../utils/createListAndMap";
-import removeStarterIngredient from "../utils/removeStarterIngredient";
+import getIngredientChanges from "./utils/getIngredientChanges";
+import updateIngredients from "./utils/updateIngredients";
+import createListAndMap from "./utils/createListAndMap";
+import removeStarterIngredient from "./utils/removeStarterIngredient";
 
 function prepare(recipe: Recipe) {
   return { payload: recipe.id };

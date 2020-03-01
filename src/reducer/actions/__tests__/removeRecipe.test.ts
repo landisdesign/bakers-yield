@@ -1,10 +1,10 @@
 import { Ingredient, Recipe } from "../../state";
-import createListAndMap from "../../utils/createListAndMap";
+import createListAndMap from "../utils/createListAndMap";
 
 import { prepare, reducer } from '../removeRecipe';
-import createTestIngredients from "../../utils/testing/createTestIngredients";
-import createTestRecipe from "../../utils/testing/createTestRecipe";
-import createTestState from "../../utils/testing/createTestState";
+import createTestIngredients from "../utils/testing/createTestIngredients";
+import createTestRecipe from "../utils/testing/createTestRecipe";
+import createTestState from "../utils/testing/createTestState";
 
 test('Remove payload includes recipe ID', () => {
   const testRecipe = createTestRecipe();

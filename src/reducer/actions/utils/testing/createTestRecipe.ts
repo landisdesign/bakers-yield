@@ -1,4 +1,4 @@
-import { Ingredient, Recipe } from "../../state";
+import { Ingredient, Recipe } from "../../../state";
 import createTestIngredients from "./createTestIngredients";
 
 const createTestRecipe = (name: string = 'foo', isStarter: boolean = false, ingredients: Ingredient[] = createTestIngredients()): Recipe => ({

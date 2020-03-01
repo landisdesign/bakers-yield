@@ -1,5 +1,5 @@
-import { Recipe } from "../state";
-import { NumberMap, MergeList } from "../../utils/types";
+import { Recipe } from "../../state";
+import { NumberMap, MergeList } from "../../../utils/types";
 
 const getIngredientChanges = (oldRecipe?: Recipe, newRecipe?: Recipe): MergeList => {
 

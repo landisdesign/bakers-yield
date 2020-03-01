@@ -1,10 +1,10 @@
 import { Recipe, ApplicationState } from "../state";
-import getIngredientChanges from "../utils/getIngredientChanges";
-import updateIngredients from "../utils/updateIngredients";
-import removeStarterIngredient from "../utils/removeStarterIngredient";
-import addStarterIngredient from "../utils/addStarterIngredient";
+import getIngredientChanges from "./utils/getIngredientChanges";
+import updateIngredients from "./utils/updateIngredients";
+import removeStarterIngredient from "./utils/removeStarterIngredient";
+import addStarterIngredient from "./utils/addStarterIngredient";
 import sortNames from "../../utils/sortNames";
-import createListAndMap from "../utils/createListAndMap";
+import createListAndMap from "./utils/createListAndMap";
 
 function prepare(recipe: Recipe) {
   return { payload: recipe };

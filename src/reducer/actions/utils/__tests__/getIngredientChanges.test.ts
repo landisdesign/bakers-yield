@@ -1,5 +1,5 @@
-import { Recipe } from "../../state";
-import { MergeList } from "../../../utils/types";
+import { Recipe } from "../../../state";
+import { MergeList } from "../../../../utils/types";
 import getIngredientChanges from '../getIngredientChanges';
 
 const testRecipe = (ids: (string | number)[]): Recipe => ({

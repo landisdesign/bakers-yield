@@ -1,5 +1,4 @@
-import { Ingredient, ApplicationState, Recipe } from "../../state";
-import createListAndMap from "../createListAndMap";
+import { Ingredient, Recipe } from "../../../state";
 import updateIngredients from "../updateIngredients";
 
 const createRecipe = (ingredientIDs: (string | number)[] = [9, 10, 7]): Recipe => ({

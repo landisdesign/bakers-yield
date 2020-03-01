@@ -1,5 +1,5 @@
-import { ListAndMap } from "../state";
-import { Identified, NumberMap } from "../../utils/types";
+import { ListAndMap } from "../../state";
+import { Identified, NumberMap } from "../../../utils/types";
 
 const createListAndMap = <T extends Identified>(list: T[]): ListAndMap<T> => ({
   list: [...list],

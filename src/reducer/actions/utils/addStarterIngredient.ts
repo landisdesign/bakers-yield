@@ -1,4 +1,4 @@
-import { Ingredient, Recipe } from "../state";
+import { Ingredient, Recipe } from "../../state";
 import createIngredient from "./createIngredient";
 
 const addStarterIngredient = (ingredients: Ingredient[], nextID: number, recipe: Recipe): [Ingredient[], number] => {

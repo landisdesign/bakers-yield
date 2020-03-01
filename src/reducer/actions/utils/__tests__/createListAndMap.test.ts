@@ -1,5 +1,5 @@
-import { ListAndMap } from "../../state";
-import { Identified } from "../../../utils/types";
+import { ListAndMap } from "../../../state";
+import { Identified } from "../../../../utils/types";
 import createListAndMap from '../createListAndMap';
 
 test('Map created properly', () => {

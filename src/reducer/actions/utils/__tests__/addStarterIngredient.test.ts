@@ -1,4 +1,4 @@
-import { Recipe, Ingredient } from '../../state';
+import { Recipe, Ingredient } from '../../../state';
 import addStarterIngredient from '../addStarterIngredient';
 
 const createRecipe = (): Recipe => ({

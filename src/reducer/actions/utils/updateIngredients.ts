@@ -1,6 +1,6 @@
-import { Recipe, Ingredient } from "../state"
+import { Recipe, Ingredient } from "../../state"
 import createIngredient from "./createIngredient";
-import { NumberMap, MergeList } from "../../utils/types";
+import { NumberMap, MergeList } from "../../../utils/types";
 
 function updateIngredients(merge: MergeList, ingredientsList: Ingredient[], nextID: number): [Ingredient[], number];
 function updateIngredients(merge: MergeList, ingredientsList: Ingredient[], nextID: number, recipe: Recipe): [Ingredient[], number, Recipe];

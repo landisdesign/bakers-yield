@@ -1,5 +1,5 @@
 import { ApplicationState, Recipe, Ingredient } from "../../state";
-import createListAndMap from "../../utils/createListAndMap";
+import createListAndMap from "../utils/createListAndMap";
 import { prepare, reducer } from "../addRecipe";
 
 const createState = (): ApplicationState => ({

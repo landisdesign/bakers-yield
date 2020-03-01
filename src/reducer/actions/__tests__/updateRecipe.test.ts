@@ -1,7 +1,7 @@
-import createTestRecipe from "../../utils/testing/createTestRecipe";
+import createTestRecipe from "../utils/testing/createTestRecipe";
 import { prepare, reducer } from "../updateRecipe";
-import createTestIngredients from "../../utils/testing/createTestIngredients";
-import createTestState from "../../utils/testing/createTestState";
+import createTestIngredients from "../utils/testing/createTestIngredients";
+import createTestState from "../utils/testing/createTestState";
 
 describe('Prepare', () => {
   test('Payload filled properly', () => {
