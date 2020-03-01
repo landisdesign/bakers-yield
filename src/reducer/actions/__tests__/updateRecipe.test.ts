@@ -2,7 +2,6 @@ import createTestRecipe from "../../utils/testing/createTestRecipe";
 import { prepare, reducer } from "../updateRecipe";
 import createTestIngredients from "../../utils/testing/createTestIngredients";
 import createTestState from "../../utils/testing/createTestState";
-import { Ingredient } from "../../state";
 
 describe('Prepare', () => {
   test('Payload filled properly', () => {
@@ -20,15 +19,21 @@ describe('Standard recipes', () => {
     const initialRecipe = createTestRecipe('foo', false, initialIngredients.slice(0, 3));
     const initialState = createTestState(initialIngredients, [initialRecipe]);
 
-    const finalRecipe = createTestRecipe('foo', false, initialIngredients.slice(2));
-    finalRecipe.ingredients.push({
+    const testRecipe = createTestRecipe('foo', false, initialIngredients.slice(2));
+    testRecipe.ingredients.push({
       ingredientID: 'a',
       weight: 0,
       proportion: 0,
       percentage: 0
     });
 
-    const finalIngredients = [
+    const expectedRecipe = {
+      ...testRecipe,
+      ingredients: testRecipe.ingredients.map(
+        ingredient => ingredient.ingredientID === 'a' ? {...ingredient, ingredientID: initialState.id} : {...ingredient}
+      )
+    };
+    const expectedIngredients = [
       {
         id: initialState.id,
         name: 'a',
@@ -42,9 +47,9 @@ describe('Standard recipes', () => {
       } // existing added ingredient
     ];
 
-    const expected = createTestState(finalIngredients, [finalRecipe]);
+    const expected = createTestState(expectedIngredients, [expectedRecipe]);
 
-    const testAction = prepare(finalRecipe);
+    const testAction = prepare(testRecipe);
     const actual = reducer(testAction, initialState);
     expect(actual).toEqual(expected);
   });
@@ -114,7 +119,8 @@ describe('Standard recipes', () => {
     const expectedIngredient = {
       name: testName,
       id: initialState.id,
-      starterRecipeID: initialRecipe.id
+      starterRecipeID: initialRecipe.id,
+      recipeCount: 0
     };
 
     let expectedIngredients = createTestIngredients();
@@ -161,9 +167,12 @@ describe('Starter recipes', () => {
 
     const expectedIngredients = createTestIngredients().slice(0, 3);
     const testRecipe = createTestRecipe(name, false, initialIngredients.slice(0,2));
-    const expected = createTestState(expectedIngredients, [testRecipe]);
+    const expected = {
+      ...createTestState(expectedIngredients, [testRecipe]),
+      id: initialState.id
+    };
 
-    const testAction = prepare(initialRecipe);
+    const testAction = prepare(testRecipe);
     const actual = reducer(testAction, initialState);
     expect(actual).toEqual(expected);
   });
@@ -179,7 +188,7 @@ describe('Starter recipes', () => {
     const testRecipe = createTestRecipe(name, false, initialIngredients.slice(0,2));
     const expected = createTestState(expectedIngredients, [testRecipe]);
 
-    const testAction = prepare(initialRecipe);
+    const testAction = prepare(testRecipe);
     const actual = reducer(testAction, initialState);
     expect(actual).toEqual(expected);
   });
