@@ -11,7 +11,7 @@ function prepare(recipe: Omit<Recipe, 'id'>) {
   }
 }
 
-function reducer(action: { payload: Omit<Recipe, 'id'> }, state: ApplicationState): ApplicationState {
+function reducer(state: ApplicationState, action: { payload: Omit<Recipe, 'id'> }): ApplicationState {
 
   const recipeData = action.payload;
 

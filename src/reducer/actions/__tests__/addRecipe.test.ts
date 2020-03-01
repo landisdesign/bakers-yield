@@ -74,7 +74,7 @@ test('Standard recipe added and ingredients updated', () => {
     ingredients: createListAndMap(expectedIngredients)
   };
 
-  const actual = reducer(testAction, initialState);
+  const actual = reducer(initialState, testAction);
   expect(actual).toEqual(expected);
 });
 
@@ -113,6 +113,6 @@ test('Starter recipe added and ingredients updated', () => {
     ingredients: createListAndMap(expectedIngredients)
   };
 
-  const actual = reducer(testAction, initialState);
+  const actual = reducer(initialState, testAction);
   expect(actual).toEqual(expected);
 });

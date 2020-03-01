@@ -8,7 +8,7 @@ function prepare(recipe: Recipe) {
   return { payload: recipe.id };
 }
 
-function reducer(action: {payload: number}, state: ApplicationState) : ApplicationState {
+function reducer(state: ApplicationState, action: {payload: number}) : ApplicationState {
 
   const recipeID = action.payload;
   const doomedRecipe = state.recipes.map[recipeID];

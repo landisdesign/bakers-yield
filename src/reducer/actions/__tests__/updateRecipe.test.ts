@@ -50,7 +50,7 @@ describe('Standard recipes', () => {
     const expected = createTestState(expectedIngredients, [expectedRecipe]);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 
@@ -76,7 +76,7 @@ describe('Standard recipes', () => {
     const expected = createTestState(undefined, expectedRecipes);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 
@@ -106,7 +106,7 @@ describe('Standard recipes', () => {
     const expected = createTestState(expectedIngredients, [testRecipe]);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 
@@ -130,7 +130,7 @@ describe('Standard recipes', () => {
     const expected = createTestState(expectedIngredients, [testRecipe]);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 });
@@ -154,7 +154,7 @@ describe('Starter recipes', () => {
     const expected = createTestState(expectedIngredients, [testRecipe]);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 
@@ -173,7 +173,7 @@ describe('Starter recipes', () => {
     };
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 
@@ -189,7 +189,7 @@ describe('Starter recipes', () => {
     const expected = createTestState(expectedIngredients, [testRecipe]);
 
     const testAction = prepare(testRecipe);
-    const actual = reducer(testAction, initialState);
+    const actual = reducer(initialState, testAction);
     expect(actual).toEqual(expected);
   });
 });

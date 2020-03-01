@@ -33,7 +33,7 @@ test('Standard recipe removed and ingredients updated', () => {
   };
   const testAction = prepare(testRecipe);
 
-  const actual = reducer(testAction, initialState);
+  const actual = reducer(initialState, testAction);
   expect(actual).toEqual(expected);
 });
 
@@ -61,7 +61,7 @@ test("Starter recipe removed and ingredients updated, with used starter's starte
   };
   const testAction = prepare(testRecipe);
 
-  const actual = reducer(testAction, initialState);
+  const actual = reducer(initialState, testAction);
   expect(actual).toEqual(expected);
 });
 
@@ -86,6 +86,6 @@ test('Starter recipe removed and ingredients updated, with unused starter remove
   };
   const testAction = prepare(testRecipe);
 
-  const actual = reducer(testAction, initialState);
+  const actual = reducer(initialState, testAction);
   expect(actual).toEqual(expected);
 });

@@ -10,7 +10,7 @@ function prepare(recipe: Recipe) {
   return { payload: recipe };
 }
 
-function reducer(action: { payload: Recipe }, state: ApplicationState): ApplicationState {
+function reducer(state: ApplicationState, action: { payload: Recipe }): ApplicationState {
 
   let updatedRecipe = {
     ...action.payload,
