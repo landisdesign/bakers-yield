@@ -1,8 +1,8 @@
 import React, { useReducer, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import { RootState } from '../reducers';
-import { Recipe, defaultIngredientRatios, Ingredient } from '../reducers/state';
+import { ApplicationState } from '../reducer/state';
+import { Recipe, defaultIngredientRatios, Ingredient } from '../reducer/state';
 
 import arraysEqual from '../utils/arraysEqual';
 import objectsEqual from '../utils/objectsEqual';
@@ -31,8 +31,8 @@ const Form: React.FC<FormProps> = (props) => {
     readonly = false
   } = props;
 
-  const existingIngredients = useSelector<RootState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
-  const storedRecipe = useSelector<RootState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
+  const existingIngredients = useSelector<ApplicationState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const storedRecipe = useSelector<ApplicationState, Recipe>(getRecipe(recipeID), recipeUnchanged) || defaultRecipe;
   const initialState: FormState = useMemo(() => (
     {
       edit,
@@ -60,7 +60,7 @@ const Form: React.FC<FormProps> = (props) => {
   );
 }
 
-const getRecipe = (recipeID: number) => (state: RootState) => state.recipes.map[recipeID];
+const getRecipe = (recipeID: number) => (state: ApplicationState) => state.recipes.map[recipeID];
 
 const recipeUnchanged = (a: Recipe, b: Recipe) => {
   if (a === b) {

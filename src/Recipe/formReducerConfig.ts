@@ -1,6 +1,6 @@
 import { FormState } from "./Form";
 import configureReducer, { ActionDefinition, Action, ActionReducer, wrapActionDefinitions } from "../utils/configureReducer";
-import { IngredientRatio, Ingredient } from "../reducers/state";
+import { IngredientRatio, Ingredient } from "../reducer/state";
 
 const formReducerConfig = wrapActionDefinitions({
   addIngredientRow: addIngredientRowReducer(),

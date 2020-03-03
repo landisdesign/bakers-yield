@@ -1,4 +1,4 @@
-import { Ingredient, Recipe } from "../reducers/state";
+import { Ingredient, Recipe } from "../reducer/state";
 
 function create(recipe: Recipe): Ingredient;
 function create(name: string): Ingredient;
