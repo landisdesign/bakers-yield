@@ -1,4 +1,4 @@
-import createTestIngredients from "../testing/createTestIngredients";
+import createTestIngredients from "../../../../utils/testing/createTestIngredients";
 import removeStarterIngredient from '../removeStarterIngredient';
 
 test('Removing an unused starter ingredient deletes the ingredient', () => {

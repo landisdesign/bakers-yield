@@ -1,4 +1,5 @@
 import { NumberMap, Identified, Named } from "../utils/types";
+import createListAndMap from "./actions/utils/createListAndMap";
 
 export interface ApplicationState {
   recipes: ListAndMap<Recipe>;
@@ -33,18 +34,6 @@ export interface Ingredient extends Identified, Named {
   starterRecipeID?: number;
 }
 
-export const defaultState: ApplicationState = {
-  recipes: {
-    list: [],
-    map: {}
-  },
-  ingredients: {
-    list: [],
-    map: {}
-  },
-  id: 0
-};
-
 // Not including recipeCount prevents deletion when no longer used in recipes
 export const defaultIngredientList: Ingredient[] = [
   {
@@ -73,3 +62,12 @@ export const defaultIngredientRatios: IngredientRatio[] = defaultIngredientList.
     percentage: 0
   })
 );
+
+export const defaultState: ApplicationState = {
+  recipes: {
+    list: [],
+    map: {}
+  },
+  ingredients: createListAndMap(defaultIngredientList),
+  id: 0
+};
