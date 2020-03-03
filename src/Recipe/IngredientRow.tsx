@@ -1,10 +1,11 @@
 import React from 'react';
 import { FormState } from './Form';
+import { DispatcherMap, ReducerMap } from 'use-local-slice';
 
 interface IngredientProps {
   row: number;
   state: FormState;
-  dispatch: React.Dispatch<FormState>;
+  dispatch: DispatcherMap<any>;
 }
 
 const IngredientRow: React.FC<IngredientProps> = (props) => {

@@ -1,5 +1,6 @@
-import React, { useReducer, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocalSlice } from 'use-local-slice';
 
 import { ApplicationState } from '../reducer/state';
 import { Recipe, defaultIngredientRatios, Ingredient } from '../reducer/state';
@@ -7,9 +8,8 @@ import { Recipe, defaultIngredientRatios, Ingredient } from '../reducer/state';
 import arraysEqual from '../utils/arraysEqual';
 import objectsEqual from '../utils/objectsEqual';
 
+import * as reducers from './actions';
 import IngredientRow from './IngredientRow';
-import reducer, { updateIngredientMatchList } from './formReducerConfig';
-
 interface FormProps {
   recipeID?: number;
   edit?: boolean;
@@ -21,7 +21,6 @@ export type FormState = Required<Omit<FormProps, 'recipeID'>> & {
   existingIngredients: Ingredient[];
   newIngredients: Ingredient[];
   ingredientMatchText: string;
-  ingredientId: number;
 };
 
 const Form: React.FC<FormProps> = (props) => {
@@ -44,12 +43,15 @@ const Form: React.FC<FormProps> = (props) => {
         ingredients: [...storedRecipe.ingredients]
       },
       ingredientList: '',
-      ingredientId: -1,
       ingredientMatchText: ''
     }
   ), [edit, readonly, existingIngredients, storedRecipe]);
 
-  const [formState, formDispatch]: [FormState, React.Dispatch<FormState>] = useReducer(reducer, initialState, (state) => updateIngredientMatchList({}, state));
+  const [formState, formDispatch] = useLocalSlice({
+    initialState,
+    slice: `Recipe ${recipeID}`,
+    reducers
+  })
 
   return (
     <form>
