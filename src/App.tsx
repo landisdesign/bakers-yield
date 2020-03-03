@@ -1,12 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-
-import Recipe from './Recipe';
-import reducer from './reducer';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 
-const RecipeList = () => <>{'<RecipeList/>'}</>;
+import reducer from './reducer';
+import Recipe from './Recipe';
+import RecipeList from './RecipeList';
 
 const store = configureStore(reducer);
 
