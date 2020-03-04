@@ -2,18 +2,9 @@ import createTestFormState from "../../../utils/testing/createTestFormState";
 import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import setIngredientWeight from "../setIngredientWeight";
 
-const createInitialState = () => {
-  const testRecipe = createTestRecipe();
-  testRecipe.ingredients.forEach((ingredient, index) => {
-    ingredient.proportion = ingredient.weight = index + 1;
-  });
-  testRecipe.totalProportion = testRecipe.totalWeight = testRecipe.ingredients.reduce((x, ingredient) => x + ingredient.proportion, 0);
-  return createTestFormState(testRecipe);
-};
-
 test('Updating ingredient updates recipe', () => {
 
-  const initialState = createInitialState();
+  const initialState = createTestFormState();
 
   const expectedRecipe = createTestRecipe(undefined, undefined, undefined, 2);
   const expected = createTestFormState(expectedRecipe);
@@ -24,7 +15,7 @@ test('Updating ingredient updates recipe', () => {
 
 test('Empty weight zeroes recipe', () => {
 
-  const initialState = createInitialState();
+  const initialState = createTestFormState();
 
   const expectedRecipe = createTestRecipe(undefined, undefined, undefined, 0);
   const expected = createTestFormState(expectedRecipe);
