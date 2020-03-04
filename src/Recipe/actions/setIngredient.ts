@@ -1,6 +1,6 @@
 import { FormState } from "../Form";
 
-function changeIngredient(state: FormState, action: { payload: { row: number; name: string; } }) {
+function setIngredient(state: FormState, action: { payload: { row: number; name: string; } }) {
   const {
     row,
     name
@@ -11,4 +11,4 @@ function changeIngredient(state: FormState, action: { payload: { row: number; na
   return state;
 }
 
-export default changeIngredient;
+export default setIngredient;

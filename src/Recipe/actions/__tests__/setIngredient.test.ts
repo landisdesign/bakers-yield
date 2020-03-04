@@ -1,5 +1,5 @@
 import createTestFormState from "../../../utils/testing/createTestFormState";
-import changeIngredient from "../changeIngredient";
+import setIngredient from "../setIngredient";
 import { defaultIngredientList } from "../../../reducer/state";
 
 test('Existing ingredient populates ingredient ID', () => {
@@ -21,13 +21,13 @@ test('Existing ingredient populates ingredient ID', () => {
     }
   };
 
-  const actualExactMatch = changeIngredient(testState, { payload: { row: 1, name: testName } });
+  const actualExactMatch = setIngredient(testState, { payload: { row: 1, name: testName } });
   expect(actualExactMatch).toEqual(expected);
 
-  const actualDifferentCase = changeIngredient(testState, { payload: { row: 1, name: testName.toUpperCase() } });
+  const actualDifferentCase = setIngredient(testState, { payload: { row: 1, name: testName.toUpperCase() } });
   expect(actualDifferentCase).toEqual(expected);
 
-  const actualPaddedCase = changeIngredient(testState, { payload: { row: 1, name: `  ${testName}  ` } });
+  const actualPaddedCase = setIngredient(testState, { payload: { row: 1, name: `  ${testName}  ` } });
   expect(actualPaddedCase).toEqual(expected);
 });
 
@@ -50,6 +50,6 @@ test('New ingredient populates ingredient name', () => {
     }
   };
 
-  const actual = changeIngredient(testState, { payload: { row: 1, name: testName } });
+  const actual = setIngredient(testState, { payload: { row: 1, name: testName } });
   expect(actual).toEqual(expected);
 });

@@ -1,7 +1,7 @@
 import { FormState } from "../Form";
 import updateWeights from "./utils/updateWeights";
 
-function changeIngredientWeight(state: FormState, action: { payload: { row: number; weight: string; } }) {
+function setIngredientWeight(state: FormState, action: { payload: { row: number; weight: string; } }) {
   const {
     weight,
     row
@@ -11,4 +11,4 @@ function changeIngredientWeight(state: FormState, action: { payload: { row: numb
   return state;
 }
 
-export default changeIngredientWeight;
+export default setIngredientWeight;

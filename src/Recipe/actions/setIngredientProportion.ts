@@ -1,7 +1,7 @@
 import { FormState } from "../Form";
 import updateWeights from "./utils/updateWeights";
 
-function changeIngredientProportion(state: FormState, action: { payload: { row: number; proportion: string; } }) {
+function setIngredientProportion(state: FormState, action: { payload: { row: number; proportion: string; } }) {
   const {
     row,
     proportion
@@ -14,4 +14,4 @@ function changeIngredientProportion(state: FormState, action: { payload: { row: 
   return state;
 }
 
-export default changeIngredientProportion;
+export default setIngredientProportion;

@@ -1,5 +1,5 @@
 import { Recipe } from "../../../reducer/state";
-import changeRecipeName from "../changeRecipeName";
+import setRecipeName from "../setRecipeName";
 import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import createTestFormState from "../../../utils/testing/createTestFormState";
 
@@ -17,6 +17,6 @@ test('Payload name updates recipe name', () => {
     }
   };
 
-  const actual = changeRecipeName(initialState, { payload: testName });
+  const actual = setRecipeName(initialState, { payload: testName });
   expect(actual).toEqual(expected);
 });

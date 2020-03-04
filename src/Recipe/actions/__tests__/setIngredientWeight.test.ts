@@ -1,6 +1,6 @@
 import createTestFormState from "../../../utils/testing/createTestFormState";
 import createTestRecipe from "../../../utils/testing/createTestRecipe";
-import changeIngredientWeight from "../changeIngredientWeight";
+import setIngredientWeight from "../setIngredientWeight";
 
 const createInitialState = () => {
   const testRecipe = createTestRecipe();
@@ -18,7 +18,7 @@ test('Updating ingredient updates recipe', () => {
   const expectedRecipe = createTestRecipe(undefined, undefined, undefined, 2);
   const expected = createTestFormState(expectedRecipe);
 
-  const actual = changeIngredientWeight(initialState, { payload: { row: 2, weight: '' + initialState.recipe.ingredients[2].weight * 2}})
+  const actual = setIngredientWeight(initialState, { payload: { row: 2, weight: '' + initialState.recipe.ingredients[2].weight * 2}})
   expect(actual).toEqual(expected);
 });
 
@@ -29,6 +29,6 @@ test('Empty weight zeroes recipe', () => {
   const expectedRecipe = createTestRecipe(undefined, undefined, undefined, 0);
   const expected = createTestFormState(expectedRecipe);
 
-  const actual = changeIngredientWeight(initialState, { payload: { row: 2, weight: ''}})
+  const actual = setIngredientWeight(initialState, { payload: { row: 2, weight: ''}})
   expect(actual).toEqual(expected);
 });

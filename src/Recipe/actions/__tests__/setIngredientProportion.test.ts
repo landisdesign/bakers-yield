@@ -1,6 +1,6 @@
 import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import createTestFormState from "../../../utils/testing/createTestFormState";
-import changeIngredientProportion from "../changeIngredientProportion";
+import setIngredientProportion from "../setIngredientProportion";
 
 test('Ingredient and total proportions, and ingredient weights, are updated properly', () => {
 
@@ -19,6 +19,6 @@ test('Ingredient and total proportions, and ingredient weights, are updated prop
 
   const expected = createTestFormState(expectedRecipe);
 
-  const actual = changeIngredientProportion(testState, { payload: { row: testRow, proportion: '' + testProportion } } );
+  const actual = setIngredientProportion(testState, { payload: { row: testRow, proportion: '' + testProportion } } );
   expect(actual).toEqual(expected);
 });
