@@ -2,6 +2,7 @@ import addIngredient from './addIngredient';
 import changeIngredient from './changeIngredient';
 import changeIngredientProportion from './changeIngredientProportion';
 import changeIngredientWeight from './changeIngredientWeight';
+import changeReciperName from './changeRecipeName';
 import removeIngredient from './removeIngredient';
 import setMeasureByPortion from './setMeasureByPortion';
 import setPortionCount from './setPortionCount';
@@ -14,6 +15,7 @@ export {
   changeIngredient,
   changeIngredientProportion,
   changeIngredientWeight,
+  changeReciperName,
   removeIngredient,
   setMeasureByPortion,
   setPortionCount,
