@@ -3,8 +3,7 @@ import updateWeights from "./utils/updateWeights";
 import sanitizeNumber from "./utils/sanitizeNumber";
 
 function setTotalWeight(state: FormState, action: { payload: string }) {
-  let recipe = state.recipe;
-  recipe = updateWeights(recipe, -1, sanitizeNumber(action.payload));
+  state.recipe = updateWeights(state.recipe, -1, sanitizeNumber(action.payload));
   return state;
 }
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { useRouteMatch, useParams } from "react-router-dom";
+import Form from "./Form";
 
 const Recipe = () => {
   const { path } = useRouteMatch();
@@ -10,7 +11,7 @@ const Recipe = () => {
   } = useParams();
 
   if (path === '/new') {
-    return <>{'<Recipe edit />'}</>;
+    return <Form />;
   }
   if (recipeID) {
     if (!actionOrStarterID) {
