@@ -1,11 +1,11 @@
 import createTestFormState from "../../../utils/testing/createTestFormState";
-import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import setPortionCount from "../setPortionCount";
+import createTestTextRecipeData from "../../../utils/testing/createTestTextRecipeData";
 
 test('Updating portion count updates weights', () => {
   const initialState = createTestFormState();
 
-  let expectedRecipe = createTestRecipe(undefined, undefined, undefined, 2);
+  let expectedRecipe = createTestTextRecipeData(undefined, undefined, undefined, 2);
 
   const expected = createTestFormState(expectedRecipe);
 
@@ -16,7 +16,7 @@ test('Updating portion count updates weights', () => {
 test('Empty portion count zeroes weights', () => {
   const initialState = createTestFormState();
 
-  let expectedRecipe = createTestRecipe(undefined, undefined, undefined, 0);
+  let expectedRecipe = createTestTextRecipeData(undefined, undefined, undefined, 0);
 
   const expected = createTestFormState(expectedRecipe);
 

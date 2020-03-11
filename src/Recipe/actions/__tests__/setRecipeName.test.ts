@@ -1,11 +1,10 @@
-import { Recipe } from "../../../reducer/state";
 import setRecipeName from "../setRecipeName";
-import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import createTestFormState from "../../../utils/testing/createTestFormState";
+import createTestTextRecipeData from "../../../utils/testing/createTestTextRecipeData";
 
 test('Payload name updates recipe name', () => {
   const testName = 'foo';
-  const testRecipe: Recipe = createTestRecipe('bar');
+  const testRecipe = createTestTextRecipeData('bar');
 
   const initialState = createTestFormState(testRecipe);
 

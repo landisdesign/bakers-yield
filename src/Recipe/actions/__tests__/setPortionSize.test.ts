@@ -1,18 +1,20 @@
 import createTestFormState from "../../../utils/testing/createTestFormState";
-import createTestRecipe from "../../../utils/testing/createTestRecipe";
 import setPortionSize from "../setPortionSize";
+import textToNumber from "../utils/textToNumber";
+import createTestTextRecipeData from "../../../utils/testing/createTestTextRecipeData";
+import numberToText from "../utils/numberToText";
 
 test('Changing portion size changes weights', () => {
   const initialState = createTestFormState();
 
-  const testSize = initialState.recipe.portionSize * 2;
+  const testSize = textToNumber(initialState.recipe.portionSize) * 2;
 
-  let expectedRecipe = createTestRecipe(undefined, undefined, undefined, 2);
-  expectedRecipe.portionCount = 1;
-  expectedRecipe.portionSize = testSize;
+  let expectedRecipe = createTestTextRecipeData(undefined, undefined, undefined, 2);
+  expectedRecipe.portionCount = '1';
+  expectedRecipe.portionSize = numberToText(testSize);
   const expected = createTestFormState(expectedRecipe);
 
-  const actual = setPortionSize(initialState, { payload: '' + testSize });
+  const actual = setPortionSize(initialState, { payload: numberToText(testSize) });
   expect(actual).toEqual(expected);
 });
 
@@ -20,7 +22,7 @@ test('Empty portion size has no effect on weight or count', () => {
   const initialState = createTestFormState();
 
   let expected = createTestFormState();
-  expected.recipe.portionSize = 0;
+  expected.recipe.portionSize = '';
 
   const actual = setPortionSize(initialState, { payload: '' });
   expect(actual).toEqual(expected);

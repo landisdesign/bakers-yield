@@ -1,6 +1,6 @@
-import sanitizeText from "./sanitizeText";
+import textToNumber from "./textToNumber";
 import { TextRecipe } from "./state";
-import sanitizeNumber from "./sanitizeNumber";
+import numberToText from "./numberToText";
 
 const updateWeights = (recipe: TextRecipe, row: number, weight: string | number) => {
 
@@ -8,15 +8,15 @@ const updateWeights = (recipe: TextRecipe, row: number, weight: string | number)
     return recipe;
   }
 
-  const proportion = row !== -1 ? sanitizeText(recipe.ingredients[row].proportion) : 0;
-  const sanitizedWeight = typeof weight === 'number' ? weight : sanitizeText(weight);
-  const weightText = typeof weight === 'number' ? sanitizeNumber(weight) : weight;
+  const proportion = row !== -1 ? textToNumber(recipe.ingredients[row].proportion) : 0;
+  const sanitizedWeight = typeof weight === 'number' ? weight : textToNumber(weight);
+  const weightText = typeof weight === 'number' ? numberToText(weight) : weight;
   const newTotalWeight = row === -1 ? sanitizedWeight : sanitizedWeight * recipe.totalProportion / proportion;
-  recipe.totalWeight = sanitizeNumber(newTotalWeight);
+  recipe.totalWeight = numberToText(newTotalWeight);
   recipe.ingredients.forEach((ingredient, i) => {
-    ingredient.weight = (i === row) ? weightText : sanitizeNumber(newTotalWeight * sanitizeText(ingredient.proportion) / recipe.totalProportion);
+    ingredient.weight = (i === row) ? weightText : numberToText(newTotalWeight * textToNumber(ingredient.proportion) / recipe.totalProportion);
   });
-  recipe.portionCount = recipe.portionSize ? sanitizeNumber(newTotalWeight / sanitizeText(recipe.portionSize)) : '';
+  recipe.portionCount = recipe.portionSize ? numberToText(newTotalWeight / textToNumber(recipe.portionSize)) : '';
 
   return recipe;
 }

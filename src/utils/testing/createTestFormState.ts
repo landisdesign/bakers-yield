@@ -1,8 +1,9 @@
-import { Recipe, Ingredient } from "../../reducer/state";
-import { FormState } from "../../Recipe/Form";
-import createTestRecipe from "./createTestRecipe";
+import { Ingredient } from "../../reducer/state";
+import { FormState } from "../../Recipe";
+import createTestTextRecipeData from "./createTestTextRecipeData";
+import { TextRecipe } from "../../Recipe/actions/utils/state";
 
-const createTestFormState = (recipe: Recipe = createTestRecipe(), ingredients: Ingredient[] = []): FormState => ({
+const createTestFormState = (recipe: TextRecipe = createTestTextRecipeData(), ingredients: Ingredient[] = []): FormState => ({
   edit: false,
   readonly: false,
   recipe,
@@ -10,8 +11,7 @@ const createTestFormState = (recipe: Recipe = createTestRecipe(), ingredients: I
   ingredientsMap: ingredients.reduce((map, ingredient) => {
     map[ingredient.name.toLowerCase()] = ingredient.id;
     return map;
-  }, {} as {[index:string]: number}),
-  ingredientMatchText: ingredients.reduce((text, ingredient) => text + ingredient.name + '¬' + ingredient.id + '\n', '')
+  }, {} as {[index:string]: number})
 });
 
 export default createTestFormState;

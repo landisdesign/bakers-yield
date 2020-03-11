@@ -1,5 +1,5 @@
 import { Recipe } from "../../../reducer/state";
-import sanitizeText from "./sanitizeText";
+import textToNumber from "./textToNumber";
 
 export interface TextIngredientRatio {
   ingredientID: number | string;
@@ -24,15 +24,15 @@ export const textToNumberRecipe = (textRecipe: TextRecipe): Omit<Recipe, 'id'> =
   isStarter: textRecipe.isStarter,
   ingredients: textRecipe.ingredients.map(ingredient => ({
     ingredientID: ingredient.ingredientID,
-    proportion: sanitizeText(ingredient.proportion),
-    weight: sanitizeText(ingredient.weight),
+    proportion: textToNumber(ingredient.proportion),
+    weight: textToNumber(ingredient.weight),
     percentage: ingredient.percentage
   })),
-  totalWeight: sanitizeText(textRecipe.totalWeight),
+  totalWeight: textToNumber(textRecipe.totalWeight),
   totalProportion: textRecipe.totalProportion,
   measureByPortion: textRecipe.measureByPortion,
-  portionSize: sanitizeText(textRecipe.portionSize),
-  portionCount: sanitizeText(textRecipe.portionCount)
+  portionSize: textToNumber(textRecipe.portionSize),
+  portionCount: textToNumber(textRecipe.portionCount)
 });
 
 export const numberToTextRecipe = (recipe: Recipe): TextRecipe => ({

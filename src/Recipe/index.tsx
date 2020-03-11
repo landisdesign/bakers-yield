@@ -9,7 +9,7 @@ import objectsEqual from "../utils/objectsEqual";
 import arraysEqual from "../utils/arraysEqual";
 import { numberToTextRecipe, TextRecipe } from "./actions/utils/state";
 import { useLocalSlice } from "use-local-slice";
-import sanitizeText from "./actions/utils/sanitizeText";
+import textToNumber from "./actions/utils/textToNumber";
 
 const RecipeForm = () => {
   const {
@@ -47,7 +47,7 @@ const RecipeForm = () => {
     reducers
   });
 
-  if (showStarter && sanitizeText(formState.recipe.totalWeight) !== +starterAmount!) {
+  if (showStarter && textToNumber(formState.recipe.totalWeight) !== +starterAmount!) {
     formDispatch.setTotalWeight(starterAmount!);
   }
   return <Form formState={formState} formDispatch={formDispatch} />;

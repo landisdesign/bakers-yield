@@ -6,8 +6,8 @@ test('Empty ingredient added to recipe', () => {
   let ingredients = [...initialState.recipe.ingredients];
   ingredients.push({
     ingredientID: '',
-    weight: 0,
-    proportion: 0,
+    weight: '',
+    proportion: '',
     percentage: 0
   });
 

@@ -1,10 +1,10 @@
-import createTestRecipe from "../../../../utils/testing/createTestRecipe";
 import updateWeights from "../updateWeights";
+import createTestTextRecipeData from "../../../../utils/testing/createTestTextRecipeData";
 
 const buildTestRecipes = (weightFactor: number = 2) => {
-  let initialRecipe = createTestRecipe();
+  let initialRecipe = createTestTextRecipeData();
 
-  let expected = createTestRecipe(undefined, undefined, undefined, weightFactor);
+  let expected = createTestTextRecipeData(undefined, undefined, undefined, weightFactor);
 
   return {
     initialRecipe,
