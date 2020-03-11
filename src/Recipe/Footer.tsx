@@ -1,8 +1,12 @@
 import React from 'react';
 import { DispatcherMap } from "use-local-slice";
 
-import { FormState } from "./Form";
+import { FormState } from ".";
 import * as reducers from './actions';
+import TextInput from '../elements/TextInput';
+import Checkbox from '../elements/Checkbox';
+import TableCell from '../elements/TableCell';
+import TableRow from '../elements/TableRow';
 
 interface FooterProps {
   formState: FormState;
@@ -16,29 +20,28 @@ const Footer: React.FC<FooterProps> = (props) => {
     dispatch
   } = props;
 
+  const edit = formState.edit;
+  const showPortion = formState.recipe.measureByPortion;
+
   return (
     <tfoot>
-      <tr>
-        <td className='proportion'>{ formState.recipe.totalProportion }</td>
-        <td className='percentage'></td>
-        <td className='ingredientName' colSpan={3}>Measure by portion <input type='checkbox' checked={formState.recipe.measureByPortion} onChange={e => dispatch.setMeasureByPortion(e.target.checked)} /></td>
-        <td></td>
-      </tr>
-      <tr className='portionSize'>
-        <td className='proportion'></td>
-        <td className='percentage'></td>
-        <td className='ingredientName'>Portion size</td>
-        <td className='weight' colSpan={2}><input type='number' value={formState.recipe.portionSize} onChange={e => dispatch.setPortionSize(e.target.value)} /></td>
-        <td></td>
-      </tr>
-      <tr className='portionCount'>
-        <th colSpan={5}>Number of portions</th>
-        <th className='weight'><input type='number' value={formState.recipe.portionCount} onChange={e => dispatch.setPortionCount(e.target.value)} /></th>
-      </tr>
-      <tr className='totalWeight'>
-        <th colSpan={5}>Total weight</th>
-        <th className='weight'><input type='number' value={formState.recipe.totalWeight} onChange={e => dispatch.setTotalWeight(e.target.value)} /></th>
-      </tr>
+      <TableRow open={edit}>
+        <TableCell open={edit}>{ formState.recipe.totalProportion }</TableCell>
+        <TableCell open={!edit}></TableCell>
+        <TableCell colSpan={3}><Checkbox disabled={!edit} inputPosition='end' checked={formState.recipe.measureByPortion} onChange={e => dispatch.setMeasureByPortion(e.target.checked)}>Measure by portion</Checkbox></TableCell>
+      </TableRow>
+      <TableRow open={edit}>
+        <TableCell colSpan={2}></TableCell>
+        <TableCell colSpan={3}><label style={{paddingLeft: '.25rem'}}>Portion size: <TextInput disabled={!edit} type='number' value={formState.recipe.portionSize} onChange={e => dispatch.setPortionSize(e.target.value)} /></label></TableCell>
+      </TableRow>
+      <TableRow open={!edit}>
+        <TableCell header align='right' colSpan={4}>Total weight</TableCell>
+        <TableCell header open={!edit}><TextInput stretch type='number' disabled={edit || showPortion} value={formState.recipe.totalWeight} onChange={e => dispatch.setTotalWeight(e.target.value)} /></TableCell>
+      </TableRow>
+      <TableRow open={!edit && showPortion}>
+        <TableCell header align='right' colSpan={4}>Number of portions</TableCell>
+        <TableCell header open={!edit}><TextInput stretch type='number' disabled={edit} value={formState.recipe.portionCount} onChange={e => dispatch.setPortionCount(e.target.value)} /></TableCell>
+      </TableRow>
     </tfoot>
   );
 }

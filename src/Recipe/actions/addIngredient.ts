@@ -1,10 +1,10 @@
-import { FormState } from "../Form";
+import { FormState } from "../";
 
 function addIngredient(state: FormState) {
   state.recipe.ingredients.push({
     ingredientID: '',
-    weight: 0,
-    proportion: 0,
+    weight: '',
+    proportion: '',
     percentage: 0
   });
   return state;

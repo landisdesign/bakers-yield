@@ -10,7 +10,11 @@ import setRecipeName from './setRecipeName';
 import setStarterRecipe from './setStarterRecipe';
 import setTotalWeight from './setTotalWeight';
 
+import setEditing from './setEditing';
+
 export {
+  setEditing,
+
   addIngredient,
   removeIngredient,
   setIngredient,

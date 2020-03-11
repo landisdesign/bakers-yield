@@ -1,4 +1,4 @@
-import { FormState } from "../Form";
+import { FormState } from "../";
 
 function setIngredient(state: FormState, action: { payload: { row: number; name: string; } }) {
   const {

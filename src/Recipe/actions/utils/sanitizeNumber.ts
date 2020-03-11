@@ -1,3 +1,3 @@
-const sanitizeNumber = (value: string) => isNaN(+value) ? 0 : +value;
+const sanitizeNumber = (number: number): string => '' + (number || '');
 
 export default sanitizeNumber;

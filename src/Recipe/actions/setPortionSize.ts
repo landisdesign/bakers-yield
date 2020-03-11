@@ -1,12 +1,12 @@
-import { FormState } from "../Form";
+import { FormState } from "../";
 import updateWeights from "./utils/updateWeights";
-import sanitizeNumber from "./utils/sanitizeNumber";
+import sanitizeText from "./utils/sanitizeText";
 
 function setPortionSize(state: FormState, action: { payload: string }) {
   let recipe = state.recipe;
-  recipe.portionSize = sanitizeNumber(action.payload);
+  recipe.portionSize = action.payload;
   if (recipe.portionSize) {
-    recipe = updateWeights(recipe, -1, recipe.portionSize * recipe.portionCount);
+    recipe = updateWeights(recipe, -1, sanitizeText(recipe.portionSize) * sanitizeText(recipe.portionCount));
   }
   return state;
 }

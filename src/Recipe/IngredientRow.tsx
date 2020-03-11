@@ -3,7 +3,12 @@ import { DispatcherMap } from 'use-local-slice';
 import { TiTrash } from 'react-icons/ti';
 
 import * as reducers from './actions';
-import { FormState } from './Form';
+import { FormState } from '.';
+import TextInput from '../elements/TextInput';
+import Icon from '../elements/Icon';
+import Button from '../elements/Button';
+import TableCell from '../elements/TableCell';
+import TableRow from '../elements/TableRow';
 
 interface IngredientProps {
   row: number;
@@ -18,6 +23,11 @@ const IngredientRow: React.FC<IngredientProps> = (props) => {
     dispatch
   } = props;
 
+  const {
+    edit,
+    readonly
+  } = state;
+
   const ingredient = state.recipe.ingredients[row];
   const ingredientID = ingredient.ingredientID;
   const ingredientText = typeof ingredientID === 'string'
@@ -25,13 +35,13 @@ const IngredientRow: React.FC<IngredientProps> = (props) => {
     : state.ingredients.find(ingredient => ingredient.id === ingredientID)?.name
   ;
 
-  return <tr>
-    <td className='proportion'><input type='number' value={ingredient.proportion} onChange={e => dispatch.setIngredientProportion({ row, proportion: e.target.value })} /></td>
-    <td className='percentage'><div>{ingredient.percentage}%</div></td>
-    <td className='ingredient' colSpan={2}><input type='text' value={ingredientText} onChange={e => dispatch.setIngredient({ row, name: e.target.value })} /></td>
-    <td className='delete'><button type='button' onClick={e => dispatch.removeIngredient(row)}><TiTrash /></button></td>
-    <td className='weight'><input type='number' value={ingredient.weight} onChange={e => dispatch.setIngredientWeight({ row, weight: e.target.value })} /></td>
-  </tr>;
+  return <TableRow>
+    <TableCell open={edit}><TextInput stretch type='number' disabled={!edit} value={ingredient.proportion} onChange={e => dispatch.setIngredientProportion({ row, proportion: e.target.value })} /></TableCell>
+    <TableCell open={!edit} align='right'>{ingredient.percentage}%</TableCell>
+    <TableCell ><TextInput stretch type='text' disabled={!edit} value={ingredientText} onChange={e => dispatch.setIngredient({ row, name: e.target.value })} /></TableCell>
+    <TableCell open={edit} align='center'><Button disabled={!edit} onClick={() => dispatch.removeIngredient(row)}><Icon base={TiTrash}/></Button></TableCell>
+    <TableCell open={!edit}><TextInput stretch type='number' disabled={edit} value={ingredient.weight} onChange={e => dispatch.setIngredientWeight({ row, weight: e.target.value })} /></TableCell>
+  </TableRow>;
 }
 
 export default IngredientRow;

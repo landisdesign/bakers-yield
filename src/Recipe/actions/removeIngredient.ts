@@ -1,14 +1,20 @@
-import { FormState } from "../Form";
+import { FormState } from "../";
+import sanitizeText from "./utils/sanitizeText";
+import updateWeights from "./utils/updateWeights";
+import sanitizeNumber from "./utils/sanitizeNumber";
 
 function removeIngredient(state: FormState, action: { payload: number }) {
 
   state.recipe.ingredients.splice(action.payload, 1);
 
-  Object.assign(state.recipe, state.recipe.ingredients.reduce((props, ingredient) => {
-    props.totalWeight += ingredient.weight;
-    props.totalProportion += ingredient.proportion;
+  const [weight, proportion] = state.recipe.ingredients.reduce((props, ingredient) => {
+    props[0] += sanitizeText(ingredient.weight);
+    props[1] += sanitizeText(ingredient.proportion);
     return props;
-  }, { totalWeight: 0, totalProportion: 0}));
+  }, [0 ,0]);
+
+  state.recipe.totalProportion = proportion;
+  updateWeights(state.recipe, -1, sanitizeNumber(weight));
 
   return state;
 }

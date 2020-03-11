@@ -1,9 +1,8 @@
-import { FormState } from "../Form";
+import { FormState } from "../";
 import updateWeights from "./utils/updateWeights";
-import sanitizeNumber from "./utils/sanitizeNumber";
 
 function setTotalWeight(state: FormState, action: { payload: string }) {
-  state.recipe = updateWeights(state.recipe, -1, sanitizeNumber(action.payload));
+  state.recipe = updateWeights(state.recipe, -1, action.payload);
   return state;
 }
 

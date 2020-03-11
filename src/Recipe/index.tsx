@@ -1,32 +1,91 @@
-import React from "react";
-import { useRouteMatch, useParams } from "react-router-dom";
-import Form from "./Form";
+import React, { useMemo } from "react";
+import { useParams } from "react-router-dom";
 
-const Recipe = () => {
-  const { path } = useRouteMatch();
+import Form from "./Form";
+import * as reducers from './actions';
+import { Recipe, defaultIngredientRatios, ApplicationState, Ingredient } from '../reducer/state';
+import { useSelector } from "react-redux";
+import objectsEqual from "../utils/objectsEqual";
+import arraysEqual from "../utils/arraysEqual";
+import { numberToTextRecipe, TextRecipe } from "./actions/utils/state";
+import { useLocalSlice } from "use-local-slice";
+import sanitizeText from "./actions/utils/sanitizeText";
+
+const RecipeForm = () => {
   const {
-    recipeID = null,
+    recipeID = -1,
     actionOrStarterID = null,
     starterAmount = null
   } = useParams();
 
-  if (path === '/new') {
-    return <Form />;
+  const edit = recipeID === -1 || actionOrStarterID === 'edit';
+  const showStarter = actionOrStarterID && actionOrStarterID !== 'edit' && starterAmount !== null;
+  const readonly = !!showStarter;
+  const parentRecipeID = showStarter ? +recipeID : undefined;
+  const displayedRecipeID = showStarter ? +actionOrStarterID! : +recipeID;
+
+  const ingredients = useSelector<ApplicationState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const ingredientsMap = useMemo(() => ingredients.reduce((map, ingredient) => {
+    map[ingredient.name.toLowerCase()] = ingredient.id;
+    return map;
+  }, {} as {[index: string]: number}), [ingredients]);
+
+  const recipe = useSelector<ApplicationState, Recipe>(getRecipe(displayedRecipeID), recipeUnchanged) || defaultRecipe;
+
+  const initialState: FormState = {
+    edit,
+    readonly,
+    parentRecipeID,
+    ingredients,
+    ingredientsMap,
+    recipe: numberToTextRecipe(recipe)
+  };
+
+  const [formState, formDispatch] = useLocalSlice({
+    initialState,
+    slice: `Recipe ${recipe.id}`,
+    reducers
+  });
+
+  if (showStarter && sanitizeText(formState.recipe.totalWeight) !== +starterAmount!) {
+    formDispatch.setTotalWeight(starterAmount!);
   }
-  if (recipeID) {
-    if (!actionOrStarterID) {
-      return <>{`<Recipe recipeID='${recipeID}' />`}</>;
-    }
-    if (actionOrStarterID === 'edit') {
-      return <>{`<Recipe recipeID='${recipeID}' edit />`}</>;
-    }
-    if (actionOrStarterID && starterAmount) {
-      return <>{`<Recipe recipeID='${recipeID}' starterID='${actionOrStarterID}' starterAmount='${starterAmount}' />`}</>;
-    }
-  }
-  return <>Invalid recipe</>;
+  return <Form formState={formState} formDispatch={formDispatch} />;
 };
 
+export default RecipeForm;
 
+const getRecipe = (recipeID: number) => (state: ApplicationState) => state.recipes.map[recipeID];
 
-export default Recipe;
+const recipeUnchanged = (a: Recipe, b: Recipe) => {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return objectsEqual(a, b, {
+    ingredients: arraysEqual(objectsEqual())
+  })
+}
+
+const defaultRecipe: Recipe = {
+  name: '',
+  id: -1,
+  isStarter: false,
+  ingredients: defaultIngredientRatios,
+  totalProportion: 0,
+  totalWeight: 0,
+  measureByPortion: true,
+  portionSize: 0,
+  portionCount: 0
+};
+
+export interface FormState {
+  edit: boolean;
+  readonly: boolean;
+  recipe: TextRecipe;
+  parentRecipeID?: number;
+  ingredients: Ingredient[];
+  ingredientsMap: { [index: string]: number};
+};
