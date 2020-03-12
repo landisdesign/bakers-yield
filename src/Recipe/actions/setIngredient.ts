@@ -5,8 +5,7 @@ function setIngredient(state: FormState, action: { payload: { row: number; name:
     row,
     name
   } = action.payload;
-  const testName = name.trim().toLowerCase();
-  const ingredientID = state.ingredientsMap[testName] || name.trim();
+  const ingredientID = state.ingredientsMap[name.toLowerCase()] || name;
   state.recipe.ingredients[row].ingredientID = ingredientID;
   return state;
 }
