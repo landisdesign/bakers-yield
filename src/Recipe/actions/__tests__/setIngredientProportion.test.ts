@@ -16,7 +16,10 @@ test('Ingredient and total proportions, and ingredient weights, are updated prop
   expectedRecipe.ingredients[testRow].proportion = testProportion;
   expectedRecipe.totalProportion = expectedRecipe.ingredients.reduce((x, ingredient) => x + textToNumber(ingredient.proportion), 0);
   expectedRecipe.ingredients.forEach(ingredient => {
-    ingredient.weight = numberToText(textToNumber(expectedRecipe.totalWeight) * textToNumber(ingredient.proportion) / expectedRecipe.totalProportion);
+    const fraction = textToNumber(ingredient.proportion) / expectedRecipe.totalProportion;
+    const percentage = Math.round(fraction * 100);
+    const weight = numberToText(Math.round(textToNumber(expectedRecipe.totalWeight) * fraction * 1000) / 1000);
+    Object.assign(ingredient, { percentage, weight });
   });
 
   const expected = createTestFormState(expectedRecipe);
