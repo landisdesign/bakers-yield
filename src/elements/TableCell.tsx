@@ -35,7 +35,6 @@ export default TableCell;
 const StyledDiv = styled.div`
   ${({align}: StyledDivProps) => align ? `text-align: ${align};` : ''}
   ${({height}: StyledDivProps) => height ? `height: ${height}px;`: ''}
-  overflow-x: hidden;
 `;
 
 type StyledDivProps = Pick<TableCellProps, 'align'> & {

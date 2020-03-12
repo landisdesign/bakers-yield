@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
+import usePrevious from "../utils/usePrevious";
 
 interface TableRowProps {
   open?: boolean;
@@ -7,13 +8,13 @@ interface TableRowProps {
 
 const TableRow: React.FC<TableRowProps> = props => {
   const {
-    open,
+    open = true,
     children
   } = props;
 
   const rowRef = useRef<HTMLTableRowElement>(null);
-  const [rowHeight, setRowHeight] = useState(0);
 
+  const [rowHeight, setRowHeight] = useState(0);
   useEffect(() => {
     if (rowRef.current) {
       const row = rowRef.current;
@@ -26,6 +27,31 @@ const TableRow: React.FC<TableRowProps> = props => {
     }
   }, [rowHeight]);
 
+  const wasOpen = usePrevious(open);
+  useEffect(() => {
+    if (wasOpen === open) {
+      return;
+    }
+
+    const row = rowRef.current;
+    if (!row) {
+      return;
+    }
+
+    const setOverflow = makeVisible(row, open);
+
+    if (wasOpen === undefined || open === false) {
+      setOverflow();
+      return;
+    }
+
+    row.addEventListener('transitionend', setOverflow);
+    return () => {
+      row.removeEventListener('transitionend', setOverflow);
+    };
+
+  }, [open]);
+
   return (
     <StyledRow ref={rowRef} rowHeight={rowHeight} open={open ?? true}>{ children }</StyledRow>
   )
@@ -33,12 +59,21 @@ const TableRow: React.FC<TableRowProps> = props => {
 
 export default TableRow;
 
+const makeVisible = (row: HTMLTableRowElement, visible: boolean) => () => {
+  const cells = row.children as HTMLCollectionOf<HTMLTableCellElement>;
+  const visibility = visible ? 'visible' : 'hidden';
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    (cell.children as HTMLCollectionOf<HTMLDivElement>)[0].style.overflowY = visibility;
+    cell.style.overflowY = visibility;
+  }
+}
+
 const StyledRow = styled.tr`
   & > * {
     transition-property: height, border-width, padding;
     transition-duration: .4s;
     border-bottom: 1px solid grey;
-    overflow-y: hidden;
 ${
   ({open, rowHeight}: StyledRowProps) => open
     ? `padding: .5rem .25rem; height: ${rowHeight}px;`
@@ -47,7 +82,6 @@ ${
 
     & > div {
       transition: height .4s;
-      overflow-y: hidden;
       ${ ({open}: StyledRowProps) => open ? '' : 'height: 0;'}
     }
   }

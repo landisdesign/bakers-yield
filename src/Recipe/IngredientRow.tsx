@@ -35,12 +35,14 @@ const IngredientRow: React.FC<IngredientProps> = (props) => {
     : state.ingredients.find(ingredient => ingredient.id === ingredientID)?.name
   ;
 
+  const ingredients = state.ingredients.map(ingredient => `${ingredient.name}${'starterRecipeID' in ingredient ? ' 🥖' : ''}`);
+
   return <TableRow>
-    <TableCell open={edit}><TextInput stretch type='number' disabled={!edit} value={ingredient.proportion} onChange={e => dispatch.setIngredientProportion({ row, proportion: e.target.value })} /></TableCell>
+    <TableCell open={edit}><TextInput stretch type='number' disabled={readonly || !edit} value={ingredient.proportion} onChange={e => dispatch.setIngredientProportion({ row, proportion: e.target.value })} /></TableCell>
     <TableCell open={!edit} align='right'>{ingredient.percentage}%</TableCell>
-    <TableCell ><TextInput stretch type='text' disabled={!edit} value={ingredientText} onChange={e => dispatch.setIngredient({ row, name: e.target.value })} /></TableCell>
-    <TableCell open={edit} align='center'><Button disabled={!edit} onClick={() => dispatch.removeIngredient(row)}><Icon base={TiTrash}/></Button></TableCell>
-    <TableCell open={!edit}><TextInput stretch type='number' disabled={edit} value={ingredient.weight} onChange={e => dispatch.setIngredientWeight({ row, weight: e.target.value })} /></TableCell>
+    <TableCell ><TextInput stretch type='text' disabled={readonly || !edit} value={ingredientText} autoCompleteList={ingredients} onChange={e => dispatch.setIngredient({ row, name: e.target.value })} /></TableCell>
+    <TableCell open={edit} align='center'><Button disabled={readonly || !edit} onClick={() => dispatch.removeIngredient(row)}><Icon base={TiTrash}/></Button></TableCell>
+    <TableCell open={!edit}><TextInput stretch type='number' disabled={readonly || edit} value={ingredient.weight} onChange={e => dispatch.setIngredientWeight({ row, weight: e.target.value })} /></TableCell>
   </TableRow>;
 }
 
