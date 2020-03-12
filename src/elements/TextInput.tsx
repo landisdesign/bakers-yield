@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import styled from "styled-components"
 import { ComponentProps } from '../utils/types';
 import AutoComplete from './AutoCompleteList';
@@ -29,7 +29,7 @@ const TextInput: React.FC<
   const useAutoComplete = !disabled && !!autoCompleteList.length;
 
   const [currentValue, setCurrentValue] = useState(value);
-  if (value !== currentValue) {
+  if (currentValue !== value) {
     setCurrentValue(value);
   }
 
