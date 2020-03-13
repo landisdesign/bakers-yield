@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useLayoutEffect, useState } from "react";
 import styled from "styled-components";
 import usePrevious from "../utils/usePrevious";
 
@@ -28,7 +28,7 @@ const TableRow: React.FC<TableRowProps> = props => {
   }, [rowHeight]);
 
   const wasOpen = usePrevious(open);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (wasOpen === open) {
       return;
     }
