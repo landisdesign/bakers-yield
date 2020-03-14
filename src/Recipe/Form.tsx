@@ -46,7 +46,7 @@ const Form: React.FC<FormProps> = (props) => {
           <col className='use input' />
         </colgroup>
         <tbody>
-          { formState.recipe.ingredients.map((ingredient, i: number) => <IngredientRow key={`${i}=${ingredient.ingredientID}`} row={i} state={formState} dispatch={formDispatch} />) }
+          { formState.recipe.ingredients.map((ingredient, i: number) => <IngredientRow key={`${i}`} row={i} state={formState} dispatch={formDispatch} />) }
           <TableRow open={formState.edit}>
             <TableCell colSpan={2}></TableCell>
             <TableCell colSpan={3}><Button disabled={!formState.edit} onClick={() => formDispatch.addIngredient()}><Icon base={TiPlusOutline} /> New ingredient</Button></TableCell>

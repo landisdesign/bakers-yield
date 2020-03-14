@@ -2,29 +2,35 @@ import React, { useCallback, useState } from 'react';
 import styled from "styled-components"
 import { ComponentProps } from '../utils/types';
 import AutoComplete from './AutoCompleteList';
+import { DisplayFilter, SearchConverter } from './AutoCompleteList/getSearchResults';
 
-interface TextInputProps {
+interface TextInputProps<T> {
   stretch?: boolean;
-  autoCompleteList?: string[];
+  autoCompleteList?: T[];
+  displayFilter?: DisplayFilter<T> | SearchConverter<T>;
 }
 
-const TextInput: React.FC<
-  TextInputProps
+type FullPropSet<T> = TextInputProps<T>
   & Exclude<ComponentProps<typeof Input>, 'value' | 'onChange'>
   & {
     value: Required<React.InputHTMLAttributes<HTMLInputElement>['value']>;
     onChange: React.ChangeEventHandler<HTMLInputElement>;
   }
-> = props => {
+;
+
+type AutoCompleteListType<P extends FullPropSet<any>> = P extends { autoCompleteList: (infer T)[] } ? T : never;
+
+const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = AutoCompleteListType<P>>(props: P) => {
   const {
     stretch,
     disabled,
     autoCompleteList = [],
+    displayFilter,
     onChange,
     value,
     id,
     ...additionalInputProps
-  } = props;
+  } = props as FullPropSet<T>;
 
   const useAutoComplete = !disabled && !!autoCompleteList.length;
 
@@ -59,6 +65,7 @@ const TextInput: React.FC<
 
   const autoCompleteProps = {
     autoCompleteList,
+    displayFilter,
     onChoose,
     searchValue: currentValue
   };
@@ -82,7 +89,7 @@ const InputWrapper = styled.label`
   cursor: text;
 `;
 
-type InputWrapperProps = Pick<TextInputProps, 'stretch'> & {
+type InputWrapperProps = Pick<TextInputProps<any>, 'stretch'> & {
   disabled?: boolean;
   useAutoComplete: boolean;
 }

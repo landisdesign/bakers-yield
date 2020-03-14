@@ -24,7 +24,8 @@ const RecipeForm = () => {
   const parentRecipeID = showStarter ? +recipeID : undefined;
   const displayedRecipeID = showStarter ? +actionOrStarterID! : +recipeID;
 
-  const ingredients = useSelector<ApplicationState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length);
+  const ingredients = useSelector<ApplicationState, Ingredient[]>(state => state.ingredients.list, (a, b) => a.length === b.length)
+  .map((ingredient, i) => i ? ingredient : {...ingredient, starterRecipeID: 2});
   const ingredientsMap = useMemo(() => ingredients.reduce((map, ingredient) => {
     map[ingredient.name.toLowerCase()] = ingredient.id;
     return map;

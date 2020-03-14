@@ -1,31 +1,41 @@
 import React, { useMemo, useRef } from "react";
 import styled from "styled-components";
-import getSearchResults from "./getSearchResults";
+import getSearchResults, { DisplayFilter, SearchConverter, defaultFilter, defaultConverter, buildSearchLine } from "./getSearchResults";
 
-interface AutoCompleteProps {
-  autoCompleteList: string[];
+interface AutoCompleteProps<T> {
+  autoCompleteList: T[];
+  displayFilter?: DisplayFilter<T> | SearchConverter<T>;
   searchValue: string | string[] | number | undefined;
   onChoose: (chosenValue: string) => void;
 }
 
-const AutoComplete: React.FC<AutoCompleteProps> = props => {
+type AutoCompleteListType<P extends AutoCompleteProps<any>> = P extends { autoCompleteList: (infer T)[] } ? T : never;
+
+const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompleteProps<any>, T = AutoCompleteListType<P>>(props: P) => {
   const {
     autoCompleteList,
     searchValue,
-    onChoose
-  } = props;
+    onChoose,
+    displayFilter = defaultFilter
+  } = props as AutoCompleteProps<T>;
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const toSearchText = typeof displayFilter === 'function' ? displayFilter : (displayFilter.search ?? defaultFilter);
+  const searchToDisplay = typeof displayFilter === 'function' ? defaultConverter : (displayFilter.transform ?? defaultConverter);
+
   const listText = useMemo(() =>
-    autoCompleteList.reduce((text, item) => `${text}${item}${newLine}`, ''),
-    [autoCompleteList])
+    autoCompleteList.reduce((text, item, index) => `${text}${buildSearchLine(item, index, toSearchText)}`, ''),
+    [autoCompleteList, toSearchText])
   ;
 
   const list = useMemo(() => getSearchResults(searchValue, listText), [searchValue, listText]);
   const listJsx = list && (
     <List>
-      { list.map( ({entry, before, found, after}) => <Item key={entry}>{ before }<strong>{ found }</strong>{ after }</Item> ) }
+      { list.map( (entry) => {
+        const item = autoCompleteList[entry.index];
+        return <Item key={entry.entry}>{searchToDisplay(item, entry)}</Item>;
+      } ) }
     </List>
   );
 
@@ -33,8 +43,6 @@ const AutoComplete: React.FC<AutoCompleteProps> = props => {
 };
 
 export default AutoComplete;
-
-const newLine = '\n';
 
 const Container = styled.div`
   position: absolute;
@@ -62,4 +70,9 @@ const Item = styled.li`
   border: 1px solid #000;
   margin: 0;
   background-color: #FFF;
+  cursor: pointer;
+
+  &:hover, &.selected {
+    background-color: #DEF;
+  }
 `;
