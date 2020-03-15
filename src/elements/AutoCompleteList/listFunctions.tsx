@@ -1,6 +1,6 @@
 import React from 'react';
 
-const getSearchResults = (searchValue: string | string[] | number | undefined, listText: string): SearchEntry[] | null => {
+export const getSearchResults = (searchValue: string | string[] | number | undefined, listText: string): SearchEntry[] | null => {
 
   if ((typeof searchValue !== 'string') || (searchValue === '')) {
     return null;
@@ -43,8 +43,6 @@ const getSearchResults = (searchValue: string | string[] | number | undefined, l
 
   return resultEntries;
 }
-
-export default getSearchResults;
 
 export const buildSearchLine = function<T>(item: T, index: number, searchFilter: SearchConverter<T>) {
   return `${searchFilter(item)}${fieldSeparator}${index}${newLine}`

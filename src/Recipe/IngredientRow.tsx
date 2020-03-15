@@ -10,7 +10,7 @@ import Icon from '../elements/Icon';
 import Button from '../elements/Button';
 import TableCell from '../elements/TableCell';
 import TableRow from '../elements/TableRow';
-import { DisplayFilter } from '../elements/AutoCompleteList/getSearchResults';
+import { DisplayFilter } from '../elements/AutoCompleteList/listFunctions';
 import { Ingredient } from '../reducer/state';
 
 interface IngredientProps {

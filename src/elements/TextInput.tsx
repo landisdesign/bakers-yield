@@ -1,8 +1,9 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, KeyboardEvent } from 'react';
 import styled from "styled-components"
 import { ComponentProps } from '../utils/types';
 import AutoComplete from './AutoCompleteList';
-import { DisplayFilter, SearchConverter } from './AutoCompleteList/getSearchResults';
+import { DisplayFilter, SearchConverter } from './AutoCompleteList/listFunctions';
+import usePrevious from '../utils/usePrevious';
 
 interface TextInputProps<T> {
   stretch?: boolean;
@@ -32,48 +33,40 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     ...additionalInputProps
   } = props as FullPropSet<T>;
 
-  const useAutoComplete = !disabled && !!autoCompleteList.length;
-
-  const [currentValue, setCurrentValue] = useState(value);
-  if (currentValue !== value) {
-    setCurrentValue(value);
-  }
-
-  const internalOnChange: React.ChangeEventHandler<HTMLInputElement> = e => {
-    setCurrentValue(e.currentTarget.value);
-    onChange(e);
-  };
-
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const onChoose = useCallback((autoCompleteValue: string) => {
-    const input = inputRef.current!;
+  const useAutoComplete = !disabled && !!autoCompleteList.length;
+  const [listSize, setListSize] = useState(0);
+  const [currentSelection, setCurrentSelection] = useState(-1);
+  const [chosenSelection, setChosenSelection] = useState(-1);
 
-    const proposedInputChange = {
-      ...input,
-      value: autoCompleteValue
-    };
+  const [visible, setVisible] = useState(true);
+  const priorValue = usePrevious(value);
+  if (priorValue !== value) {
+    setVisible(true);
+    setChosenSelection(-1);
+  }
 
-    const event: React.ChangeEvent<HTMLInputElement> = {
-      target: proposedInputChange,
-      currentTarget: proposedInputChange,
-      bubbles: false,
-      cancelable: false,
-      defaultPrevented: false,
-      isDefaultPrevented: () => false,
-      preventDefault: () => {},
-      eventPhase: Event.AT_TARGET,
-      type: 'change',
-      isPropagationStopped: () => false,
-      stopPropagation: () => {},
-      isTrusted: false,
-      timeStamp: Date.now(),
-      nativeEvent: new Event('change'),
-      persist: () => {}
-    }
+  const onChoose = useCallback((value: string) => {
+    onChange(createFakeChangeEvent(inputRef, value));
+  }, []);
 
-    onChange(event);
-  }, [inputRef]);
+  const onListChange = useCallback((newListSize: number) => {
+    setListSize(newListSize);
+    setCurrentSelection(-1);
+  }, []);
+
+  const onSelectionClear = useCallback(() => {
+    setCurrentSelection(-1);
+  }, []);
+
+  const onKeyDown = useCallback(createKeyDownEventHandler({
+    listSize,
+    currentSelection,
+    setCurrentSelection,
+    setVisible,
+    setChosenSelection
+  }), [currentSelection, listSize]);
 
   const wrapperProps = {
     stretch,
@@ -84,9 +77,10 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
 
   const inputProps = {
     disabled,
-    onChange: internalOnChange,
+    onKeyDown: useAutoComplete ? onKeyDown : undefined,
+    onChange,
     id,
-    value: currentValue,
+    value,
     ref: inputRef,
     ...additionalInputProps
   };
@@ -95,7 +89,13 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     autoCompleteList,
     displayFilter,
     onChoose,
-    searchValue: currentValue
+    onListChange,
+    onSelectionClear,
+    value,
+    currentSelection,
+    chosenSelection,
+    visible,
+    inputRef
   };
 
   return <InputWrapper {...wrapperProps}><Input {...inputProps} />{ useAutoComplete ? <AutoComplete { ...autoCompleteProps } /> : null}</InputWrapper>;
@@ -132,3 +132,79 @@ const Input = styled.input`
   font-size: 1rem;
   color: #000;
 `;
+
+const createFakeChangeEvent = (inputRef: React.RefObject<HTMLInputElement>, value: string): React.ChangeEvent<HTMLInputElement> => {
+
+  const proposedInputChange = {
+    ...inputRef.current!,
+    value
+  }
+
+  return {
+    target: proposedInputChange,
+    currentTarget: proposedInputChange,
+    bubbles: false,
+    cancelable: false,
+    defaultPrevented: false,
+    isDefaultPrevented: () => false,
+    preventDefault: () => {},
+    eventPhase: Event.AT_TARGET,
+    type: 'change',
+    isPropagationStopped: () => false,
+    stopPropagation: () => {},
+    isTrusted: false,
+    timeStamp: Date.now(),
+    nativeEvent: new Event('change'),
+    persist: () => {}
+  };
+};
+
+const createKeyDownEventHandler = ({
+  listSize,
+  currentSelection,
+  setCurrentSelection,
+  setVisible,
+  setChosenSelection
+}: {
+  listSize: number;
+  currentSelection: number;
+  setCurrentSelection: (value: number) => void;
+  setVisible: (value: boolean) => void;
+  setChosenSelection: (value: number) => void;
+}) => (e: KeyboardEvent<HTMLInputElement>) => {
+
+  if (listSize === 0) {
+    return;
+  }
+
+  let newSelection = currentSelection;
+
+  switch (e.key) {
+    case 'Up':
+    case 'ArrowUp':
+      newSelection--;
+      if (newSelection < 0) {
+        newSelection = listSize - 1;
+      }
+      setCurrentSelection(newSelection);
+      e.preventDefault();
+      break;
+    case 'Down':
+    case 'ArrowDown':
+      newSelection++;
+      if (newSelection >= listSize) {
+        newSelection = 0;
+      }
+      setCurrentSelection(newSelection);
+      e.preventDefault();
+      break;
+    case 'Esc':
+    case 'Escape':
+      setVisible(false);
+      e.preventDefault();
+      break;
+    case 'Enter':
+      setChosenSelection(currentSelection);
+      e.preventDefault();
+      break;
+  }}

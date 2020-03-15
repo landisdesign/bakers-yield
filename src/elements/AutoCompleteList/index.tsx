@@ -1,12 +1,18 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import styled from "styled-components";
-import getSearchResults, { DisplayFilter, SearchConverter, defaultFilter, defaultConverter, buildSearchLine } from "./getSearchResults";
+import { DisplayFilter, SearchConverter, defaultFilter, defaultConverter, buildSearchLine, getSearchResults } from "./listFunctions";
+import usePrevious from "../../utils/usePrevious";
 
 interface AutoCompleteProps<T> {
   autoCompleteList: T[];
   displayFilter?: DisplayFilter<T> | SearchConverter<T>;
-  searchValue: string | string[] | number | undefined;
+  value: string | string[] | number | undefined;
   onChoose: (chosenValue: string) => void;
+  onListChange: (listSize: number) => void;
+  onSelectionClear: () => void;
+  currentSelection: number;
+  chosenSelection: number;
+  visible: boolean;
 }
 
 type AutoCompleteListType<P extends AutoCompleteProps<any>> = P extends { autoCompleteList: (infer T)[] } ? T : never;
@@ -14,12 +20,16 @@ type AutoCompleteListType<P extends AutoCompleteProps<any>> = P extends { autoCo
 const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompleteProps<any>, T = AutoCompleteListType<P>>(props: P) => {
   const {
     autoCompleteList,
-    searchValue,
+    value,
     onChoose,
+    onListChange,
+    onSelectionClear,
+    currentSelection,
+    chosenSelection,
+    visible,
     displayFilter = defaultFilter
   } = props as AutoCompleteProps<T>;
 
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toSearchText = typeof displayFilter === 'function' ? displayFilter : (displayFilter.search ?? defaultFilter);
@@ -30,15 +40,31 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
     [autoCompleteList, toSearchText])
   ;
 
-  const list = useMemo(() => getSearchResults(searchValue, listText), [searchValue, listText]);
-  const listJsx = list && (
-    <List onMouseOver={() => setSelectedIndex(-1)}>
-      { list.map( (entry, index) => {
-        const item = autoCompleteList[entry.index];
-        return <Item className={index === selectedIndex ? 'selected' : undefined} key={entry.entry} onClick={() => {onChoose(`${entry.before}${entry.found}${entry.after}`)}}>{searchToDisplay(item, entry)}</Item>;
-      } ) }
-    </List>
-  );
+  const list = useMemo(() => getSearchResults(value, listText), [value, listText]);
+
+  if (list && chosenSelection !== -1 && chosenSelection < list.length) {
+    const entry = list[chosenSelection];
+    onChoose(`${entry.before}${entry.found}${entry.after}`);
+  }
+
+  const currentListSize = visible ? list?.length ?? 0 : 0;
+  const priorListSize = usePrevious(currentListSize) ?? 0;
+
+  if (priorListSize !== currentListSize) {
+    onListChange(currentListSize);
+  }
+
+  const listJsx = visible
+    ? list && (
+      <List onMouseOver={() => onSelectionClear()}>
+        { list.map( (entry, index) => {
+          const item = autoCompleteList[entry.index];
+          return <Item className={index === currentSelection ? 'selected' : undefined} key={entry.entry} onClick={() => { onChoose(`${entry.before}${entry.found}${entry.after}`)}}>{searchToDisplay(item, entry)}</Item>;
+        } ) }
+      </List>
+    )
+    : null
+  ;
 
   return <Container ref={containerRef}>{listJsx}</Container>;
 };
