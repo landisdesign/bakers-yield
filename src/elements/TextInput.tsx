@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import styled from "styled-components"
 import { ComponentProps } from '../utils/types';
 import AutoComplete from './AutoCompleteList';
@@ -44,9 +44,36 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     onChange(e);
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const onChoose = useCallback((autoCompleteValue: string) => {
-    setCurrentValue(autoCompleteValue);
-  }, [autoCompleteList]);
+    const input = inputRef.current!;
+
+    const proposedInputChange = {
+      ...input,
+      value: autoCompleteValue
+    };
+
+    const event: React.ChangeEvent<HTMLInputElement> = {
+      target: proposedInputChange,
+      currentTarget: proposedInputChange,
+      bubbles: false,
+      cancelable: false,
+      defaultPrevented: false,
+      isDefaultPrevented: () => false,
+      preventDefault: () => {},
+      eventPhase: Event.AT_TARGET,
+      type: 'change',
+      isPropagationStopped: () => false,
+      stopPropagation: () => {},
+      isTrusted: false,
+      timeStamp: Date.now(),
+      nativeEvent: new Event('change'),
+      persist: () => {}
+    }
+
+    onChange(event);
+  }, [inputRef]);
 
   const wrapperProps = {
     stretch,
@@ -60,6 +87,7 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     onChange: internalOnChange,
     id,
     value: currentValue,
+    ref: inputRef,
     ...additionalInputProps
   };
 

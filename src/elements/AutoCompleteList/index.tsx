@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import getSearchResults, { DisplayFilter, SearchConverter, defaultFilter, defaultConverter, buildSearchLine } from "./getSearchResults";
 
@@ -19,6 +19,7 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
     displayFilter = defaultFilter
   } = props as AutoCompleteProps<T>;
 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toSearchText = typeof displayFilter === 'function' ? displayFilter : (displayFilter.search ?? defaultFilter);
@@ -31,10 +32,10 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
 
   const list = useMemo(() => getSearchResults(searchValue, listText), [searchValue, listText]);
   const listJsx = list && (
-    <List>
-      { list.map( (entry) => {
+    <List onMouseOver={() => setSelectedIndex(-1)}>
+      { list.map( (entry, index) => {
         const item = autoCompleteList[entry.index];
-        return <Item key={entry.entry}>{searchToDisplay(item, entry)}</Item>;
+        return <Item className={index === selectedIndex ? 'selected' : undefined} key={entry.entry} onClick={() => {onChoose(`${entry.before}${entry.found}${entry.after}`)}}>{searchToDisplay(item, entry)}</Item>;
       } ) }
     </List>
   );
