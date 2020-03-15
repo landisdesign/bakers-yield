@@ -9,7 +9,7 @@ interface AutoCompleteProps<T> {
   value: string | string[] | number | undefined;
   onChoose: (chosenValue: string) => void;
   onListChange: (listSize: number) => void;
-  onSelectionClear: () => void;
+  clearSelection: () => void;
   currentSelection: number;
   chosenSelection: number;
   visible: boolean;
@@ -23,7 +23,7 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
     value,
     onChoose,
     onListChange,
-    onSelectionClear,
+    clearSelection,
     currentSelection,
     chosenSelection,
     visible,
@@ -40,14 +40,14 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
     [autoCompleteList, toSearchText])
   ;
 
-  const list = useMemo(() => getSearchResults(value, listText), [value, listText]);
+  const list = useMemo(() => visible ? getSearchResults(value, listText) : null, [value, listText, visible]);
 
   if (list && chosenSelection !== -1 && chosenSelection < list.length) {
     const entry = list[chosenSelection];
     onChoose(`${entry.before}${entry.found}${entry.after}`);
   }
 
-  const currentListSize = visible ? list?.length ?? 0 : 0;
+  const currentListSize = list?.length ?? 0;
   const priorListSize = usePrevious(currentListSize) ?? 0;
 
   if (priorListSize !== currentListSize) {
@@ -56,10 +56,10 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
 
   const listJsx = visible
     ? list && (
-      <List onMouseOver={() => onSelectionClear()}>
+      <List onMouseOver={() => clearSelection()}>
         { list.map( (entry, index) => {
           const item = autoCompleteList[entry.index];
-          return <Item className={index === currentSelection ? 'selected' : undefined} key={entry.entry} onClick={() => { onChoose(`${entry.before}${entry.found}${entry.after}`)}}>{searchToDisplay(item, entry)}</Item>;
+          return <Item className={index === currentSelection ? 'selected' : undefined} key={entry.entry} onClick={e => { onChoose(`${entry.before}${entry.found}${entry.after}`); e.stopPropagation(); }}>{searchToDisplay(item, entry)}</Item>;
         } ) }
       </List>
     )

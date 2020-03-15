@@ -56,10 +56,6 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     setCurrentSelection(-1);
   }, []);
 
-  const onSelectionClear = useCallback(() => {
-    setCurrentSelection(-1);
-  }, []);
-
   const onKeyDown = useCallback(createKeyDownEventHandler({
     listSize,
     currentSelection,
@@ -67,6 +63,18 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     setVisible,
     setChosenSelection
   }), [currentSelection, listSize]);
+
+  const clearSelection = useCallback(() => {
+    setCurrentSelection(-1);
+  }, []);
+
+  const onBlur = useCallback(() => {
+    setVisible(false);
+  }, []);
+
+  const onFocus = useCallback(() => {
+    setVisible(true);
+  }, []);
 
   const wrapperProps = {
     stretch,
@@ -79,6 +87,8 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     disabled,
     onKeyDown: useAutoComplete ? onKeyDown : undefined,
     onChange,
+    onFocus,
+    onBlur,
     id,
     value,
     ref: inputRef,
@@ -90,7 +100,7 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     displayFilter,
     onChoose,
     onListChange,
-    onSelectionClear,
+    clearSelection,
     value,
     currentSelection,
     chosenSelection,
@@ -207,4 +217,5 @@ const createKeyDownEventHandler = ({
       setChosenSelection(currentSelection);
       e.preventDefault();
       break;
-  }}
+  }
+};
