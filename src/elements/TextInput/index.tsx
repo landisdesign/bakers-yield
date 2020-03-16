@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import styled from "styled-components"
-import { ComponentProps } from '../utils/types';
+import { ComponentProps } from '../../utils/types';
 import AutoComplete from './AutoCompleteList';
-import { DisplayFilter, SearchConverter } from './AutoCompleteList/listFunctions';
-import usePrevious from '../utils/usePrevious';
+import { DisplayFilter, SearchConverter } from './listFunctions';
+import usePrevious from '../../utils/usePrevious';
 
 interface TextInputProps<T> {
   stretch?: boolean;
