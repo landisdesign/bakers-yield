@@ -50,7 +50,7 @@ const TableRow: React.FC<TableRowProps> = props => {
       row.removeEventListener('transitionend', setOverflow);
     };
 
-  }, [open]);
+  }, [open, wasOpen]);
 
   return (
     <StyledRow ref={rowRef} rowHeight={rowHeight} open={open ?? true}>{ children }</StyledRow>
