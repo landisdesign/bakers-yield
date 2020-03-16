@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, KeyboardEvent } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from "styled-components"
 import { ComponentProps } from '../utils/types';
 import AutoComplete from './AutoCompleteList';
@@ -40,41 +40,13 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
   const [currentSelection, setCurrentSelection] = useState(-1);
   const [chosenSelection, setChosenSelection] = useState(-1);
 
-  const [visible, setVisible] = useState(true);
+  const [autoCompleteVisibility, setAutoCompleteVisibility] = useState(true);
   const priorValue = usePrevious(value);
+
   if (priorValue !== value) {
-    setVisible(true);
+    setAutoCompleteVisibility(true);
     setChosenSelection(-1);
   }
-
-  const onChoose = useCallback((value: string) => {
-    onChange(createFakeChangeEvent(inputRef, value));
-  }, []);
-
-  const onListChange = useCallback((newListSize: number) => {
-    setListSize(newListSize);
-    setCurrentSelection(-1);
-  }, []);
-
-  const onKeyDown = useCallback(createKeyDownEventHandler({
-    listSize,
-    currentSelection,
-    setCurrentSelection,
-    setVisible,
-    setChosenSelection
-  }), [currentSelection, listSize]);
-
-  const clearSelection = useCallback(() => {
-    setCurrentSelection(-1);
-  }, []);
-
-  const onBlur = useCallback(() => {
-    setVisible(false);
-  }, []);
-
-  const onFocus = useCallback(() => {
-    setVisible(true);
-  }, []);
 
   const wrapperProps = {
     stretch,
@@ -83,12 +55,20 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
     ...(id && { htmlFor: id })
   }
 
+  const onKeyDown = createKeyDownEventHandler({
+    listSize,
+    currentSelection,
+    setCurrentSelection,
+    setAutoCompleteVisibility,
+    setChosenSelection
+  });
+
   const inputProps = {
     disabled,
     onKeyDown: useAutoComplete ? onKeyDown : undefined,
     onChange,
-    onFocus,
-    onBlur,
+    onFocus: () => setAutoCompleteVisibility(true),
+    onBlur: () => setAutoCompleteVisibility(false),
     id,
     value,
     ref: inputRef,
@@ -98,13 +78,16 @@ const TextInput: React.FC<FullPropSet<any>> = <P extends FullPropSet<any>, T = A
   const autoCompleteProps = {
     autoCompleteList,
     displayFilter,
-    onChoose,
-    onListChange,
-    clearSelection,
+    onChoose: (value: string) => onChange(createFakeChangeEvent(inputRef, value)),
+    onListSizeChange: (newListSize: number) => {
+      setListSize(newListSize);
+      setCurrentSelection(-1);
+    },
+    clearSelection: () => setCurrentSelection(-1),
     value,
     currentSelection,
     chosenSelection,
-    visible,
+    visible: autoCompleteVisibility,
     inputRef
   };
 
@@ -173,15 +156,15 @@ const createKeyDownEventHandler = ({
   listSize,
   currentSelection,
   setCurrentSelection,
-  setVisible,
+  setAutoCompleteVisibility,
   setChosenSelection
 }: {
   listSize: number;
   currentSelection: number;
   setCurrentSelection: (value: number) => void;
-  setVisible: (value: boolean) => void;
+  setAutoCompleteVisibility: (value: boolean) => void;
   setChosenSelection: (value: number) => void;
-}) => (e: KeyboardEvent<HTMLInputElement>) => {
+}) => (e: React.KeyboardEvent<HTMLInputElement>) => {
 
   if (listSize === 0) {
     return;
@@ -210,7 +193,7 @@ const createKeyDownEventHandler = ({
       break;
     case 'Esc':
     case 'Escape':
-      setVisible(false);
+      setAutoCompleteVisibility(false);
       e.preventDefault();
       break;
     case 'Enter':

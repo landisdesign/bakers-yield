@@ -8,7 +8,7 @@ interface AutoCompleteProps<T> {
   displayFilter?: DisplayFilter<T> | SearchConverter<T>;
   value: string | string[] | number | undefined;
   onChoose: (chosenValue: string) => void;
-  onListChange: (listSize: number) => void;
+  onListSizeChange: (listSize: number) => void;
   clearSelection: () => void;
   currentSelection: number;
   chosenSelection: number;
@@ -22,7 +22,7 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
     autoCompleteList,
     value,
     onChoose,
-    onListChange,
+    onListSizeChange,
     clearSelection,
     currentSelection,
     chosenSelection,
@@ -51,7 +51,7 @@ const AutoComplete: React.FC<AutoCompleteProps<any>> = <P extends AutoCompletePr
   const priorListSize = usePrevious(currentListSize) ?? 0;
 
   if (priorListSize !== currentListSize) {
-    onListChange(currentListSize);
+    onListSizeChange(currentListSize);
   }
 
   const listJsx = visible
